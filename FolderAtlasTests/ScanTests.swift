@@ -153,21 +153,27 @@ final class ScanTests: XCTestCase {
     }
 
     func testCancellation() async throws {
-        let task = Task { try await ScanEngine.run(root: root, config: ScanConfiguration()) }
+        let rootURL = root!
+        let task = Task { try await ScanEngine.run(root: rootURL, config: ScanConfiguration()) }
         task.cancel()
         let output = try await task.value
         XCTAssertTrue(output.cancelled)
     }
 
     func testProgressEventsArrive() async throws {
-        let expectation = expectation(description: "progress")
-        expectation.assertForOverFulfill = false
+        final class EventBox: @unchecked Sendable {
+            private let lock = NSLock()
+            private var finished = false
+            func mark() { lock.lock(); finished = true; lock.unlock() }
+            var isFinished: Bool { lock.lock(); defer { lock.unlock() }; return finished }
+        }
+        let box = EventBox()
         let output = try await ScanEngine.run(root: root, config: ScanConfiguration()) { event in
             if event.finished {
-                expectation.fulfill()
+                box.mark()
             }
         }
         XCTAssertFalse(output.cancelled)
-        await fulfillment(of: [expectation], timeout: 10)
+        XCTAssertTrue(box.isFinished, "the finished progress event must be delivered")
     }
 }

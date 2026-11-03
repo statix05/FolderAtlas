@@ -167,7 +167,7 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(report.groups.count, 1)
         XCTAssertEqual(report.groups.first?.nodes.count, 2)
         XCTAssertEqual(report.groups.first?.size, Int64("same content".utf8.count))
-        XCTAssertEqual(report.hashedCount, 3)
+        XCTAssertEqual(report.hashedCount, 2) // only the same-size candidates get hashed
     }
 
     // MARK: - CSV / TSV
@@ -183,13 +183,15 @@ final class CoreTests: XCTestCase {
         let data = TextExporters.delimited(rows: [RowBuilder.Row(cells: [row], node: node)],
                                            totals: nil, columns: [.name], separator: ",", bom: false)
         let text = String(data: data, encoding: .utf8)!
-        XCTAssertTrue(text.contains("\"'=cmd|' /C calc'!A0\""))
-        // Newline inside field forces quoting and the embedded quote is doubled.
+        // Guard apostrophe + quoting (the field contains a newline, so it is quoted
+        // as a whole; the closing quote follows the embedded newline).
+        XCTAssertTrue(text.contains("\"'=cmd|' /C calc'!A0"))
         XCTAssertTrue(text.contains("next\""))
         XCTAssertFalse(text.hasPrefix("\u{FEFF}"))
 
         let withBOM = TextExporters.delimited(rows: [], totals: nil, columns: [.name], separator: ",", bom: true)
-        XCTAssertTrue(String(data: withBOM, encoding: .utf8)!.hasPrefix("\u{FEFF}"))
+        // String(data:encoding:) strips the BOM when decoding — check raw bytes.
+        XCTAssertEqual(Array(withBOM.prefix(3)), [0xEF, 0xBB, 0xBF])
     }
 
     func testMinusPrefixIsGuarded() {
@@ -210,7 +212,7 @@ final class CoreTests: XCTestCase {
                                           rows: builder.rows(), options: options)
         let object = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
         let rows = try XCTUnwrap(object["rows"] as? [[String: Any]])
-        XCTAssertEqual(rows.count, 4)
+        XCTAssertEqual(rows.count, 3) // the scan root itself is not exported
         let firstFile = rows.first { ($0["name"] as? String)?.contains("файл-1") == true }
         XCTAssertEqual(firstFile?["size"] as? Double, 1)
     }
@@ -301,7 +303,8 @@ final class CoreTests: XCTestCase {
         var options = ExportOptions()
         options.columns = [.name]
         let builder = RowBuilder(snapshot: snapshot, options: options, filter: FilterCriteria(), selection: [])
-        let data = TextExporters.markdown(rows: [RowBuilder.Row(cells: builder.rows()[0].cells.count > 0 ? builder.cell(.name, node) : [], node: node)],
+        let row = RowBuilder.Row(cells: [builder.cell(.name, node)], node: node)
+        let data = TextExporters.markdown(rows: [row],
                                           totals: nil, columns: [.name])
         let text = String(data: data, encoding: .utf8)!
         XCTAssertTrue(text.contains("a\\|b"))

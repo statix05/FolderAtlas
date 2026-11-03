@@ -49,6 +49,12 @@ enum HTMLExporter {
         .num { text-align: right; font-variant-numeric: tabular-nums; }
         img.thumb { width: 48px; height: 48px; object-fit: cover; border-radius: 4px; vertical-align: middle; }
         tfoot td { font-weight: 600; border-top: 2px solid rgba(127,127,127,.5); }
+        @media (prefers-color-scheme: dark) {
+          body { background: #1e1e1e; color: #f2f2f2; }
+          .meta { color: #9a9aa0; }
+          th, td { border-bottom-color: rgba(127,127,127,.35); }
+          tr.folder td { color: #ffd9a0; }
+        }
         </style>
         </head>
         <body>

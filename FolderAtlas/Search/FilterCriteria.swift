@@ -75,10 +75,18 @@ struct FilterCriteria: Sendable, Equatable {
             guard let size = node.size, size <= maxSize else { return false }
         }
 
-        if let createdFrom, let created = node.created, created < createdFrom { return false }
-        if let createdTo, let created = node.created, created > createdTo { return false }
-        if let modifiedFrom, let modified = node.modified, modified < modifiedFrom { return false }
-        if let modifiedTo, let modified = node.modified, modified > modifiedTo { return false }
+        if let createdFrom {
+            guard let created = node.created, created >= createdFrom else { return false }
+        }
+        if let createdTo {
+            guard let created = node.created, created <= createdTo else { return false }
+        }
+        if let modifiedFrom {
+            guard let modified = node.modified, modified >= modifiedFrom else { return false }
+        }
+        if let modifiedTo {
+            guard let modified = node.modified, modified <= modifiedTo else { return false }
+        }
 
         switch hiddenMode {
         case .any: break

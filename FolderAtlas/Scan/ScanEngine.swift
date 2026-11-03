@@ -46,6 +46,11 @@ enum ScanError: LocalizedError, Sendable {
 /// - Errors on individual items are recorded on the item and never abort the scan.
 /// - iCloud placeholders are recorded but never downloaded.
 /// - Original files are never modified.
+///
+/// Folder aggregates (child count, recursive descendant count, recursive size) are
+/// stored per directory during its own enumeration (direct values only) and folded
+/// bottom-up at the end — parents always have smaller ids than their children, so a
+/// single descending pass is enough and no merge ordering race can occur.
 enum ScanEngine {
 
     private struct ScanJob: Sendable {
@@ -55,12 +60,6 @@ enum ScanEngine {
         /// Relative path of the parent directory ("" for the root).
         var parentRelative: String
         var depth: Int
-    }
-
-    private struct DirAgg: Sendable {
-        var directChildren: Int64 = 0
-        var totalDescendants: Int64 = 0
-        var totalSize: Int64 = 0
     }
 
     private struct InodeKey: Hashable, Sendable {
@@ -80,7 +79,6 @@ enum ScanEngine {
         private(set) var folderCount = 0
         private(set) var errorCount = 0
         private(set) var totalSize: Int64 = 0
-        private var agg: [Int64: DirAgg] = [:]
 
         enum Claim: Sendable { case job(ScanJob); case wait; case done }
 
@@ -106,33 +104,26 @@ enum ScanEngine {
             for record in batch { records[record.id] = record }
         }
 
-        func countFile(size: Int64?, parent: Int64?) {
+        func countFile(size: Int64?) {
             fileCount += 1
             if let size { totalSize += size }
-            if let parent {
-                var a = agg[parent] ?? DirAgg()
-                a.directChildren += 1
-                if let size { a.totalSize += size }
-                agg[parent] = a
-            }
         }
 
-        func countFolder(parent: Int64?) {
+        func countFolder() {
             folderCount += 1
-            if let parent {
-                var a = agg[parent] ?? DirAgg()
-                a.directChildren += 1
-                agg[parent] = a
-            }
         }
 
-        func recordError(parent: Int64?) {
+        func recordError() {
             errorCount += 1
-            if let parent {
-                var a = agg[parent] ?? DirAgg()
-                a.directChildren += 1
-                agg[parent] = a
-            }
+        }
+
+        /// Stores the direct (non-recursive) statistics of a directory right after
+        /// its own enumeration finished.
+        func setDirectoryStats(_ id: Int64, childCount: Int64, directSize: Int64, computeSizes: Bool) {
+            guard var record = records[id] else { return }
+            record.childCount = childCount
+            if computeSizes { record.dirSize = directSize }
+            records[id] = record
         }
 
         func push(_ job: ScanJob) { pending.append(job) }
@@ -158,40 +149,40 @@ enum ScanEngine {
                                 bytesProcessed: totalSize, currentPath: currentPath)
         }
 
-        /// Called when the whole subtree of `childID` has been enumerated: folds its
-        /// aggregates into the parent and stores final aggregate values on the record.
-        func mergeSubtree(childID: Int64, parentID: Int64?) {
-            let childAgg = agg[childID] ?? DirAgg()
-            if var record = records[childID] {
-                record.childCount = childAgg.directChildren
-                record.descendantCount = childAgg.totalDescendants
-                record.dirSize = childAgg.totalSize
-                records[childID] = record
-            }
-            if let parentID {
-                var parent = agg[parentID] ?? DirAgg()
-                parent.totalSize += childAgg.totalSize
-                parent.totalDescendants += childAgg.directChildren + childAgg.totalDescendants
-                agg[parentID] = parent
-            }
-            agg[childID] = nil
-        }
-
         func stats(rootPath: String) -> ScanStats {
             ScanStats(fileCount: fileCount, folderCount: folderCount, errorCount: errorCount,
                       totalSize: totalSize, durationSeconds: 0, rootPath: rootPath)
         }
 
+        /// Bottom-up fold of folder aggregates, then renumbering into dense ids.
         func finalize() -> [NodeRecord] {
-            // Cancelled scans leave unmerged aggregates; store whatever is known.
-            for (id, a) in agg {
-                guard var record = records[id] else { continue }
-                record.childCount = record.childCount ?? a.directChildren
-                record.descendantCount = record.descendantCount ?? a.totalDescendants
-                record.dirSize = record.dirSize ?? a.totalSize
-                records[id] = record
+            var ordered = records.values.sorted { $0.id < $1.id }
+            var byID: [Int64: NodeRecord] = [:]
+            var childrenOf: [Int64: [Int64]] = [:]
+            for record in ordered {
+                byID[record.id] = record
+                if let parent = record.parentID {
+                    childrenOf[parent, default: []].append(record.id)
+                }
             }
-            let ordered = records.values.sorted { $0.id < $1.id }
+            // Parents are always created before children, so ids grow with depth.
+            for index in stride(from: ordered.count - 1, through: 0, by: -1) {
+                var record = ordered[index]
+                guard record.isDirectory, let kids = childrenOf[record.id] else { continue }
+                var sizeSum = record.dirSize ?? 0
+                var descendantSum = record.childCount ?? 0
+                var anySizeKnown = record.dirSize != nil
+                for kid in kids {
+                    guard let child = byID[kid] else { continue }
+                    if let childSize = child.dirSize { sizeSum += childSize; anySizeKnown = true }
+                    if let childDescendants = child.descendantCount { descendantSum += childDescendants }
+                }
+                if anySizeKnown { record.dirSize = sizeSum }
+                if record.childCount != nil { record.descendantCount = descendantSum }
+                ordered[index] = record
+                byID[record.id] = record
+            }
+
             var map: [Int64: Int64] = [:]
             for (index, record) in ordered.enumerated() { map[record.id] = Int64(index) }
             return ordered.map { record in
@@ -226,7 +217,7 @@ enum ScanEngine {
             tags: (try? root.resourceValues(forKeys: [.tagNamesKey]).tagNames) ?? nil,
             notDownloaded: false)
         await state.add([rootRecord])
-        await state.countFolder(parent: nil)
+        await state.countFolder()
         _ = await state.visit(InodeKey(dev: rootStat.dev, ino: rootStat.ino))
         await state.push(ScanJob(url: root, id: rootID, parentID: nil, parentRelative: "", depth: 0))
 
@@ -273,7 +264,6 @@ enum ScanEngine {
                     await state.failDirectory(job, message: error.localizedDescription)
                 }
                 await state.release()
-                await state.mergeSubtree(childID: job.id, parentID: job.parentID)
                 if let onProgress, let snapshot = await state.reportProgress(currentPath: job.url.path) {
                     onProgress(snapshot)
                 }
@@ -303,6 +293,7 @@ enum ScanEngine {
         var batch: [NodeRecord] = []
         var newJobs: [ScanJob] = []
         var itemsSeen = 0
+        var directSize: Int64 = 0
 
         for (index, url) in children.enumerated() {
             if Task.isCancelled { throw CancellationError() }
@@ -320,12 +311,12 @@ enum ScanEngine {
             batch.append(record)
 
             if record.error != nil {
-                await state.recordError(parent: job.id)
+                await state.recordError()
                 continue
             }
 
             if record.isDirectory {
-                await state.countFolder(parent: job.id)
+                await state.countFolder()
                 let mayDescend = (!record.isPackage || config.includePackageContents)
                     && (config.maxDepth == nil || job.depth + 1 <= config.maxDepth!)
                 if mayDescend, let stat = Stat.lstat(url.path) {
@@ -336,12 +327,16 @@ enum ScanEngine {
                     }
                 }
             } else {
-                await state.countFile(size: record.size, parent: job.id)
+                if let size = record.size { directSize += size }
+                await state.countFile(size: record.size)
             }
         }
 
         await state.add(batch)
         for newJob in newJobs { await state.push(newJob) }
+        await state.setDirectoryStats(job.id, childCount: Int64(children.count),
+                                      directSize: directSize,
+                                      computeSizes: config.computeFolderSizes)
     }
 
     private static func buildRecord(url: URL, id: Int64, parentID: Int64?, parentRelative: String) -> NodeRecord {

@@ -70,10 +70,12 @@ enum SnapshotDiff {
 
         let moves = detectMoves(removed: removedOld, added: addedNew)
         for move in moves { report.moved.append(move) }
-        for (path, node) in removedOld {
+        let consumedRemoved = Set(moves.compactMap(\.movedFrom))
+        let consumedAdded = Set(moves.compactMap { $0.current?.relativePath })
+        for (path, node) in removedOld where !consumedRemoved.contains(path) {
             report.removed.append(DiffEntry(id: path, kind: .removed, current: nil, previous: node))
         }
-        for (path, node) in addedNew {
+        for (path, node) in addedNew where !consumedAdded.contains(path) {
             report.added.append(DiffEntry(id: path, kind: .added, current: node, previous: nil))
         }
         report.changed.sort { $0.path.localizedStandardCompare($1.path) == .orderedAscending }
