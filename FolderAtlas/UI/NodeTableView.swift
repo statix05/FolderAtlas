@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import os
 
 /// Native NSOutlineView driving BOTH layouts (flat list = single level,
 /// tree = expandable). Replaces SwiftUI `Table`, whose AppKit coordinator
@@ -48,6 +49,8 @@ struct NodeTableRepresentable: NSViewRepresentable {
         private var table: NSOutlineView?
         private var scrollView: NSScrollView?
 
+        static let log = Logger(subsystem: "sbs.statix.FolderAtlas", category: "table")
+
         private static let emptyBox = ItemBox(NodeRow(NodeRecord(
             id: -1, parentID: nil, name: "", relativePath: "", ext: nil,
             isDirectory: false, isHidden: false, isSymlink: false, isPackage: false,
@@ -84,7 +87,15 @@ struct NodeTableRepresentable: NSViewRepresentable {
 
         func makeView(session: MapSession) -> NSScrollView {
             let table = NSOutlineView()
-            table.headerView = NSTableHeaderView()
+            // Custom header: the ONLY sort trigger. AppKit's delegate
+            // didClickTableColumn proved unreliable here (never fired for the
+            // owner's real clicks), so clicks are detected directly on the
+            // header view; drag/resize/reorder still go through super.
+            let header = SortHeader(frame: .zero)
+            table.headerView = header
+            header.onHeaderClick = { [weak self] tableColumn in
+                self?.handleHeaderClick(tableColumn)
+            }
             table.allowsColumnReordering = true
             table.allowsColumnResizing = true
             table.allowsMultipleSelection = true
@@ -160,6 +171,7 @@ struct NodeTableRepresentable: NSViewRepresentable {
         func sync(session: MapSession) {
             self.session = session
             guard let table else { return }
+            Self.log.info("sync rev=\(session.displayRevision) appliedRev=\(self.appliedRevision) sort=\(session.sortOrder.first?.column.rawValue ?? "-", privacy: .public)/\(session.sortOrder.first?.order == .reverse ? "R" : "F", privacy: .public) rows=\(session.visibleRows.count)")
 
             if appliedRevision != session.displayRevision || appliedTree != tree {
                 appliedRevision = session.displayRevision
@@ -205,6 +217,7 @@ struct NodeTableRepresentable: NSViewRepresentable {
         private func reloadPreservingState() {
             guard let table, let session else { return }
             let previousIDs = currentSelectedIDs()
+            Self.log.info("reload rev=\(self.appliedRevision) tree=\(self.tree) rows=\(self.tree ? (session.treeRows?.count ?? -1) : session.visibleRows.count) first=\((self.tree ? session.treeRows?.first?.record.displayName : session.visibleRows.first?.record.displayName) ?? "-", privacy: .public)")
 
             if tree {
                 topBoxes = (session.treeRows ?? []).map { box(for: $0) }
@@ -378,12 +391,16 @@ struct NodeTableRepresentable: NSViewRepresentable {
             expandedIDs.remove(box.row.id)
         }
 
-        /// Header click → sort (the single authoritative mechanism; there is
-        /// deliberately no sortDescriptorPrototype, see rebuildColumns).
-        func tableView(_ tableView: NSTableView, didClickTableColumn tableColumn: NSTableColumn) {
+        /// Header click → sort. Single authoritative mechanism.
+        private func handleHeaderClick(_ tableColumn: NSTableColumn) {
             guard let session, !suppressSortSync,
-                  let column = NodeColumn(rawValue: tableColumn.identifier.rawValue) else { return }
-            session.sortOrder = RowSorting.nextSort(current: session.sortOrder, column: column)
+                  let column = NodeColumn(rawValue: tableColumn.identifier.rawValue) else {
+                Self.log.info("header click ignored (no session / suppressed / unknown column)")
+                return
+            }
+            let next = RowSorting.nextSort(current: session.sortOrder, column: column)
+            Self.log.info("header click \(column.rawValue, privacy: .public) -> \(next.first?.order == .reverse ? "reverse" : "forward", privacy: .public)")
+            session.sortOrder = next
         }
 
         func tableView(_ tableView: NSTableView, menuForEvent event: NSEvent, row: Int, column: Int) -> NSMenu? {
@@ -438,6 +455,31 @@ struct NodeTableRepresentable: NSViewRepresentable {
             }
             return menu
         }
+    }
+}
+
+// MARK: - Header view that detects clicks without relying on delegate quirks
+
+/// Click-vs-drag aware header: short click on a column body → sort; border
+/// interactions (resize), column dragging and reordering stay native via
+/// super.mouseDown's tracking loop.
+final class SortHeader: NSTableHeaderView {
+    var onHeaderClick: ((NSTableColumn) -> Void)?
+
+    override func mouseDown(with event: NSEvent) {
+        let start = event.locationInWindow
+        let startTime = event.timestamp
+        super.mouseDown(with: event) // blocks until tracking ends
+        guard let up = NSApp.currentEvent else { return }
+        let dx = up.locationInWindow.x - start.x
+        let dy = up.locationInWindow.y - start.y
+        guard dx * dx + dy * dy < 25, up.timestamp - startTime < 0.6,
+              up.type == .leftMouseUp || up.type == .rightMouseUp else { return }
+        let local = convert(up.locationInWindow, from: nil)
+        let index = column(at: local)
+        guard index >= 0, let tableView,
+              index < tableView.tableColumns.count else { return }
+        onHeaderClick?(tableView.tableColumns[index])
     }
 }
 

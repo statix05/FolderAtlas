@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import AppKit
+import os
 
 enum EnrichmentScope: String, CaseIterable, Identifiable {
     case selection, filtered, all
@@ -20,6 +21,8 @@ enum EnrichmentScope: String, CaseIterable, Identifiable {
 @MainActor
 @Observable
 final class MapSession {
+
+    static let log = Logger(subsystem: "sbs.statix.FolderAtlas", category: "session")
 
     enum Layout: String, CaseIterable, Identifiable {
         case list, tree
@@ -76,6 +79,7 @@ final class MapSession {
     var sortOrder: [ColumnSort] = NodeColumn.loadSort() {
         didSet {
             guard oldValue != sortOrder else { return }
+            Self.log.info("sortOrder -> \(self.sortOrder.first?.column.rawValue ?? "-", privacy: .public)/\(self.sortOrder.first?.order == .reverse ? "R" : "F", privacy: .public)")
             NodeColumn.saveSort(sortOrder)
             scheduleRebuild(tree: layout == .tree)
         }
@@ -119,8 +123,9 @@ final class MapSession {
     }
 
     /// Bumped whenever the displayed data or column configuration changes so
-    /// the AppKit table knows to reload.
-    @ObservationIgnored private(set) var displayRevision = 0
+    /// the AppKit table knows to reload. OBSERVED on purpose — it is the
+    /// primary signal that drives NSViewRepresentable.updateNSView.
+    private(set) var displayRevision = 0
 
     var layout: Layout = .list {
         didSet {
@@ -307,6 +312,7 @@ final class MapSession {
                 self.visibleRows = rows
                 if needsTree { self.treeRows = tree }
                 self.displayRevision += 1
+                Self.log.info("apply gen=\(generation) rows=\(rows.count) first=\(rows.first?.record.displayName ?? "-", privacy: .public) rev=\(self.displayRevision) tree=\(needsTree)")
             }
         }
     }
