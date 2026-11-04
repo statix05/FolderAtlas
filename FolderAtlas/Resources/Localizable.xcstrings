@@ -609,22 +609,6 @@
         }
       }
     },
-    "Copy": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copy"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Скопировать"
-          }
-        }
-      }
-    },
     "Copy Name": {
       "localizations": {
         "en": {
@@ -701,22 +685,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Текущая фильтрация"
-          }
-        }
-      }
-    },
-    "Cut": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cut"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Вырезать"
           }
         }
       }
@@ -877,22 +845,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Длительность"
-          }
-        }
-      }
-    },
-    "Edit": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Edit"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Правка"
           }
         }
       }
@@ -2209,22 +2161,6 @@
         }
       }
     },
-    "Paste": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Paste"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Вставить"
-          }
-        }
-      }
-    },
     "Path": {
       "localizations": {
         "en": {
@@ -2365,22 +2301,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Быстрый просмотр выделенного"
-          }
-        }
-      }
-    },
-    "Redo": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Redo"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Вернуть"
           }
         }
       }
@@ -2845,22 +2765,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Поиск по именам и путям"
-          }
-        }
-      }
-    },
-    "Select All": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Select All"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Выбрать все"
           }
         }
       }
@@ -3501,22 +3405,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Недоступен"
-          }
-        }
-      }
-    },
-    "Undo": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Undo"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Отменить"
           }
         }
       }

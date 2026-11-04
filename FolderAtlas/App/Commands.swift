@@ -88,39 +88,13 @@ struct AppCommands: Commands {
 
         // MARK: Edit
 
-        // Standard text commands routed through the responder chain — without
-        // this menu, text fields (save sheet, filters) lose Cmd+C/V/A.
-        CommandMenu(String(localized: "Edit")) {
-            Button(String(localized: "Undo")) {
-                NSApp.sendAction(Selector(("undo:")), to: nil, from: nil)
-            }
-            .keyboardShortcut("z", modifiers: .command)
-            Button(String(localized: "Redo")) {
-                NSApp.sendAction(Selector(("redo:")), to: nil, from: nil)
-            }
-            .keyboardShortcut("z", modifiers: [.command, .shift])
-            Divider()
-            Button(String(localized: "Cut")) {
-                NSApp.sendAction(#selector(NSText.cut(_:)), to: nil, from: nil)
-            }
-            .keyboardShortcut("x", modifiers: .command)
-            Button(String(localized: "Copy")) {
-                NSApp.sendAction(#selector(NSText.copy(_:)), to: nil, from: nil)
-            }
-            .keyboardShortcut("c", modifiers: .command)
-            Button(String(localized: "Paste")) {
-                NSApp.sendAction(#selector(NSText.paste(_:)), to: nil, from: nil)
-            }
-            .keyboardShortcut("v", modifiers: .command)
-            Button(String(localized: "Select All")) {
-                NSApp.sendAction(#selector(NSText.selectAll(_:)), to: nil, from: nil)
-            }
-            .keyboardShortcut("a", modifiers: .command)
-        }
+        // The system already provides a localized Edit menu with standard
+        // commands; adding our own created a duplicate (owner report). Nothing
+        // to add here.
 
-        // MARK: View
+        // MARK: View — merge into the system View menu.
 
-        CommandMenu(String(localized: "View")) {
+        CommandGroup(after: .toolbar) {
             Picker(String(localized: "Layout"), selection: layoutBinding) {
                 Text(String(localized: "List"))
                     .tag(MapSession.Layout.list)
@@ -148,9 +122,9 @@ struct AppCommands: Commands {
             .help(Text("These apply to the next scan; the current map keeps the settings it was scanned with."))
         }
 
-        // MARK: Help
+        // MARK: Help — merge into the system Help menu.
 
-        CommandMenu(String(localized: "Help")) {
+        CommandGroup(after: .help) {
             Button(String(localized: "FolderAtlas on GitHub")) {
                 if let url = URL(string: "https://github.com/statix05/FolderAtlas") {
                     NSWorkspace.shared.open(url)
