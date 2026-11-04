@@ -502,7 +502,11 @@ final class SortHeader: NSTableHeaderView {
     override func mouseDown(with event: NSEvent) {
         let start = event.locationInWindow
         let startTime = event.timestamp
+        let onBorder = isOnColumnBorder(convert(event.locationInWindow, from: nil))
         super.mouseDown(with: event) // blocks until tracking ends
+        // Border interactions belong to resize/autofit — never to sorting
+        // (the owner reported: border clicks sorted instead of resizing).
+        if onBorder { return }
         guard let up = NSApp.currentEvent else { return }
         let dx = up.locationInWindow.x - start.x
         let dy = up.locationInWindow.y - start.y
@@ -513,6 +517,19 @@ final class SortHeader: NSTableHeaderView {
         guard index >= 0, let tableView,
               index < tableView.tableColumns.count else { return }
         onHeaderClick?(tableView.tableColumns[index])
+    }
+
+    /// True when the point sits within ±4 pt of a column divider or the last
+    /// column's trailing edge — the resize zone (single click, drag, or
+    /// double-click for autofit must NOT trigger sorting).
+    private func isOnColumnBorder(_ local: NSPoint) -> Bool {
+        guard let tableView, !tableView.tableColumns.isEmpty else { return false }
+        var x: CGFloat = 0
+        for tableColumn in tableView.tableColumns {
+            x += tableColumn.width
+            if abs(local.x - x) <= 4 { return true }
+        }
+        return false
     }
 }
 

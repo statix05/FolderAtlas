@@ -9,6 +9,10 @@ struct MapWindowRoot: View {
     @Environment(AppLibrary.self) private var library
     @Binding var request: MapWindowRequest?
 
+    /// Set after the first default window decides about auto-opening the
+    /// most recent saved map (only the cold-start window does this).
+    private static var autoOpenHandled = false
+
     @State private var session = MapSession()
     @State private var showExport = false
     @State private var showFilter = false
@@ -64,6 +68,14 @@ struct MapWindowRoot: View {
         .onAppear {
             if let request {
                 session.apply(request: request)
+            } else if !MapWindowRoot.autoOpenHandled, let newest = library.savedMaps.first {
+                // Cold start with no explicit target (no folder URL, no
+                // service request): open the most recent saved map instead of
+                // an empty draft.
+                MapWindowRoot.autoOpenHandled = true
+                request = MapWindowRequest.existing(newest.id)
+            } else {
+                MapWindowRoot.autoOpenHandled = true
             }
         }
         .onChange(of: request) { _, newValue in
