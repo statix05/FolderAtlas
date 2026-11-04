@@ -153,33 +153,17 @@ struct NodeTableRepresentable: NSViewRepresentable {
             guard let table else { return }
             isRebuildingColumns = true
             defer { isRebuildingColumns = false }
-            // Remove from a SNAPSHOT: if tableColumns returned a live array,
-            // removing while enumerating skipped entries and left orphans
-            // behind, which then duplicated on re-add.
-            for tableColumn in table.tableColumns {
-                table.removeTableColumn(tableColumn)
-            }
             // Defensive dedup: a corrupted persisted layout must never
             // materialise as two identical columns.
             var ordered: [NodeColumn] = []
             for column in session.columnLayout.visible where !ordered.contains(column) {
                 ordered.append(column)
             }
-            for column in ordered {
-                let tableColumn = NSTableColumn(identifier: NSUserInterfaceItemIdentifier(column.rawValue))
-                tableColumn.title = column.title
-                tableColumn.width = CGFloat(session.columnLayout.widths[column.rawValue]
-                                            ?? Self.defaultWidths[column] ?? 120)
-                tableColumn.minWidth = 40
-                tableColumn.maxWidth = 900
-                // No sortDescriptorPrototype: header clicks are handled
-                // explicitly via didClickTableColumn (see below) — AppKit's
-                // automatic prototype cycling conflicts with it and caused
-                // "indicator moves but data doesn't sort".
-                table.addTableColumn(tableColumn)
-            }
-            table.outlineTableColumn = table.tableColumns.first
-            table.sizeLastColumnToFit()
+            TableColumnRebuilder.apply(
+                table,
+                target: ordered,
+                widths: session.columnLayout.widths,
+                defaultWidths: Self.defaultWidths)
             appliedLayout = session.columnLayout
         }
 
