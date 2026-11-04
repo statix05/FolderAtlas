@@ -19,6 +19,8 @@ An open source macOS app that turns any folder or drive into a **map**: a struct
 
 Privacy: everything runs locally. No account, no cloud, no telemetry. Scanning never modifies or deletes files, and iCloud placeholders are never downloaded.
 
+> **Known issues** are tracked honestly in the [changelog](CHANGELOG.md) (the «Known issues» section of the unreleased version) — currently including: column order resets after toggling visibility (acknowledged, deprioritized), and «size on disk» may render smaller than the logical size while the calculation is being fixed.
+
 ## Build
 
 Requirements: Xcode 16 or newer with a macOS SDK, [xcodegen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`).
