@@ -1,7 +1,134 @@
 {
   "sourceLanguage": "en",
-  "version": "1.0",
   "strings": {
+    "%lld files · %@ total": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld files · %@ total"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Файлов: %lld · Всего: %@"
+          }
+        }
+      }
+    },
+    "%lld files · %lld folders · %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld files · %lld folders · %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Файлов: %lld · Папок: %lld · %@"
+          }
+        }
+      }
+    },
+    "%lld groups · %lld candidates hashed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld groups · %lld candidates hashed"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Групп: %lld · Хешировано кандидатов: %lld"
+          }
+        }
+      }
+    },
+    "%lld items selected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld items selected"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выбрано объектов: %lld"
+          }
+        }
+      }
+    },
+    "%lld items · %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld items · %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Объектов: %lld · %@"
+          }
+        }
+      }
+    },
+    "%lld selected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld selected"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выбрано: %lld"
+          }
+        }
+      }
+    },
+    "%lld ×": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ×"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ×"
+          }
+        }
+      }
+    },
+    "%lld/%lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld/%lld"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld/%lld"
+          }
+        }
+      }
+    },
     "Absolute": {
       "localizations": {
         "en": {
@@ -30,6 +157,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Добавить папку"
+          }
+        }
+      }
+    },
+    "Added (%lld)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Added (%lld)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Добавлено (%lld)"
           }
         }
       }
@@ -98,6 +241,22 @@
         }
       }
     },
+    "Building map…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Building map…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Строим карту…"
+          }
+        }
+      }
+    },
     "CSV": {
       "localizations": {
         "en": {
@@ -142,6 +301,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Отмена"
+          }
+        }
+      }
+    },
+    "Changed (%lld)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changed (%lld)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Изменено (%lld)"
           }
         }
       }
@@ -222,6 +397,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Закрыть"
+          }
+        }
+      }
+    },
+    "Cloud placeholder — the file is not downloaded. FolderAtlas never triggers downloads.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cloud placeholder — the file is not downloaded. FolderAtlas never triggers downloads."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Плейсхолдер iCloud — файл не загружен. FolderAtlas никогда не запускает загрузку."
           }
         }
       }
@@ -594,6 +785,22 @@
         }
       }
     },
+    "Embed image thumbnails (first %lld)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Embed image thumbnails (first %lld)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Встроить миниатюры изображений (первые %lld)"
+          }
+        }
+      }
+    },
     "Excel (.xlsx)": {
       "localizations": {
         "en": {
@@ -866,6 +1073,22 @@
         }
       }
     },
+    "Folder Map": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Folder Map"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Карта папки"
+          }
+        }
+      }
+    },
     "Folder rows (hierarchy)": {
       "localizations": {
         "en": {
@@ -926,6 +1149,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "Папок"
+          }
+        }
+      }
+    },
+    "Folders on top": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Folders on top"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Папки сверху"
+          }
+        }
+      }
+    },
+    "Folders on top (sorting)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Folders on top (sorting)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Папки сверху (сортировка)"
           }
         }
       }
@@ -1266,6 +1521,22 @@
         }
       }
     },
+    "Maps are stored in Application Support as metadata snapshots. Original files are never copied or modified.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maps are stored in Application Support as metadata snapshots. Original files are never copied or modified."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Карты хранятся в Application Support как снимки метаданных. Исходные файлы не копируются и не изменяются."
+          }
+        }
+      }
+    },
     "Maps open without the original disk — they are metadata snapshots, not backups of file contents.": {
       "localizations": {
         "en": {
@@ -1342,6 +1613,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Определение перемещений по размеру и дате создания (без контрольных сумм)."
+          }
+        }
+      }
+    },
+    "Moved (%lld)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moved (%lld)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перемещено (%lld)"
           }
         }
       }
@@ -1682,6 +1969,22 @@
         }
       }
     },
+    "Page %lld of %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Page %lld of %lld"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Страница %lld из %lld"
+          }
+        }
+      }
+    },
     "Path": {
       "localizations": {
         "en": {
@@ -1810,6 +2113,22 @@
         }
       }
     },
+    "Quick Look the selection": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quick Look the selection"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Быстрый просмотр выделенного"
+          }
+        }
+      }
+    },
     "Relative": {
       "localizations": {
         "en": {
@@ -1822,6 +2141,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Относительные"
+          }
+        }
+      }
+    },
+    "Removed (%lld)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Removed (%lld)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Удалено (%lld)"
           }
         }
       }
@@ -2194,6 +2529,22 @@
         }
       }
     },
+    "Scanning… %lld items": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scanning… %lld items"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сканирование… %lld эл."
+          }
+        }
+      }
+    },
     "Scope": {
       "localizations": {
         "en": {
@@ -2466,6 +2817,22 @@
         }
       }
     },
+    "Stop metadata extraction": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop metadata extraction"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Остановить извлечение метаданных"
+          }
+        }
+      }
+    },
     "Symlink": {
       "localizations": {
         "en": {
@@ -2578,6 +2945,22 @@
         }
       }
     },
+    "The folder could not be read: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The folder could not be read: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось прочитать папку: %@"
+          }
+        }
+      }
+    },
     "The item could not be inspected": {
       "localizations": {
         "en": {
@@ -2610,6 +2993,22 @@
         }
       }
     },
+    "The map was saved by a newer version of FolderAtlas.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The map was saved by a newer version of FolderAtlas."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Карта сохранена более новой версией FolderAtlas."
+          }
+        }
+      }
+    },
     "The saved map file will be removed. Original files are not touched.": {
       "localizations": {
         "en": {
@@ -2622,6 +3021,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "Файл сохранённой карты будет удалён. Исходные файлы не затрагиваются."
+          }
+        }
+      }
+    },
+    "The saved map is corrupted.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The saved map is corrupted."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Файл карты повреждён."
+          }
+        }
+      }
+    },
+    "The saved map was not found.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The saved map was not found."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сохранённая карта не найдена."
           }
         }
       }
@@ -2654,6 +3085,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "Исходная папка или диск недоступны. Карта открывается из сохранённых метаданных."
+          }
+        }
+      }
+    },
+    "This map is not saved yet": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This map is not saved yet"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Эта карта ещё не сохранена"
+          }
+        }
+      }
+    },
+    "Total: %lld items": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total: %lld items"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Всего: %lld"
           }
         }
       }
@@ -2722,6 +3185,22 @@
         }
       }
     },
+    "Unsaved map": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unsaved map"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Несохранённая карта"
+          }
+        }
+      }
+    },
     "View": {
       "localizations": {
         "en": {
@@ -2786,370 +3265,18 @@
         }
       }
     },
-    "The folder could not be read: %@": {
+    "max": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The folder could not be read: %@"
+            "value": "max"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Не удалось прочитать папку: %@"
-          }
-        }
-      }
-    },
-    "Scanning… %lld items": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scanning… %lld items"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Сканирование… %lld эл."
-          }
-        }
-      }
-    },
-    "Page %lld of %lld": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Page %lld of %lld"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Страница %lld из %lld"
-          }
-        }
-      }
-    },
-    "Total: %lld items": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Total: %lld items"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Всего: %lld"
-          }
-        }
-      }
-    },
-    "Added (%lld)": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Added (%lld)"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Добавлено (%lld)"
-          }
-        }
-      }
-    },
-    "Removed (%lld)": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Removed (%lld)"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Удалено (%lld)"
-          }
-        }
-      }
-    },
-    "Changed (%lld)": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Changed (%lld)"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Изменено (%lld)"
-          }
-        }
-      }
-    },
-    "Moved (%lld)": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moved (%lld)"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Перемещено (%lld)"
-          }
-        }
-      }
-    },
-    "%lld selected": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld selected"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Выбрано: %lld"
-          }
-        }
-      }
-    },
-    "%lld files · %lld folders · %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld files · %lld folders · %@"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Файлов: %lld · Папок: %lld · %@"
-          }
-        }
-      }
-    },
-    "%lld items selected": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld items selected"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Выбрано объектов: %lld"
-          }
-        }
-      }
-    },
-    "%lld files · %@ total": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld files · %@ total"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Файлов: %lld · Всего: %@"
-          }
-        }
-      }
-    },
-    "%lld groups · %lld candidates hashed": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld groups · %lld candidates hashed"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Групп: %lld · Хешировано кандидатов: %lld"
-          }
-        }
-      }
-    },
-    "%lld ×": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld ×"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld ×"
-          }
-        }
-      }
-    },
-    "wasted: %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "wasted: %@"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "лишних: %@"
-          }
-        }
-      }
-    },
-    "Embed image thumbnails (first %lld)": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Embed image thumbnails (first %lld)"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Встроить миниатюры изображений (первые %lld)"
-          }
-        }
-      }
-    },
-    "Quick Look the selection": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Quick Look the selection"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Быстрый просмотр выделенного"
-          }
-        }
-      }
-    },
-    "Stop metadata extraction": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stop metadata extraction"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Остановить извлечение метаданных"
-          }
-        }
-      }
-    },
-    "The map was saved by a newer version of FolderAtlas.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The map was saved by a newer version of FolderAtlas."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Карта сохранена более новой версией FolderAtlas."
-          }
-        }
-      }
-    },
-    "The saved map is corrupted.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The saved map is corrupted."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Файл карты повреждён."
-          }
-        }
-      }
-    },
-    "The saved map was not found.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The saved map was not found."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Сохранённая карта не найдена."
-          }
-        }
-      }
-    },
-    "Cloud placeholder — the file is not downloaded. FolderAtlas never triggers downloads.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cloud placeholder — the file is not downloaded. FolderAtlas never triggers downloads."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Плейсхолдер iCloud — файл не загружен. FolderAtlas никогда не запускает загрузку."
-          }
-        }
-      }
-    },
-    "Maps are stored in Application Support as metadata snapshots. Original files are never copied or modified.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Maps are stored in Application Support as metadata snapshots. Original files are never copied or modified."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Карты хранятся в Application Support как снимки метаданных. Исходные файлы не копируются и не изменяются."
+            "value": "макс"
           }
         }
       }
@@ -3170,117 +3297,22 @@
         }
       }
     },
-    "max": {
+    "wasted: %@": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "max"
+            "value": "wasted: %@"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "макс"
-          }
-        }
-      }
-    },
-    "Building map…": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Building map…"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Строим карту…"
-          }
-        }
-      }
-    },
-    "Folder Map": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Folder Map"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Карта папки"
-          }
-        }
-      }
-    },
-    "Folders on top": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Folders on top"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Папки сверху"
-          }
-        }
-      }
-    },
-    "Folders on top (sorting)": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Folders on top (sorting)"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Папки сверху (сортировка)"
-          }
-        }
-      }
-    },
-    "%lld items · %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld items · %@"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Объектов: %lld · %@"
-          }
-        }
-      }
-    },
-    "%lld/%lld": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld/%lld"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld/%lld"
+            "value": "лишних: %@"
           }
         }
       }
     }
-  }
+  },
+  "version": "1.0"
 }

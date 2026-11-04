@@ -12,6 +12,20 @@ struct SidebarView: View {
     var body: some View {
         List {
             Section {
+                // The current window's unsaved map (draft), marked with a star
+                // until it is saved. Temporary SF Symbol "star"; will become
+                // the Nerd Font glyph nf-fa-star_of_life when the bundled
+                // Nerd Font lands (item 5 / P7).
+                if session.isDraft {
+                    HStack {
+                        Label(session.displayName.isEmpty
+                              ? String(localized: "Unsaved map")
+                              : session.displayName,
+                              systemImage: "star")
+                            .lineLimit(1)
+                    }
+                    .help(Text("This map is not saved yet"))
+                }
                 ForEach(library.savedMaps) { header in
                     mapRow(header)
                 }

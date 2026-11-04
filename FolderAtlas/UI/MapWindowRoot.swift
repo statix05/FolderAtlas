@@ -84,7 +84,8 @@ struct MapWindowRoot: View {
         .onReceive(NotificationCenter.default.publisher(for: AppLibrary.folderRequestNotification)) { _ in
             let urls = library.takePendingURLs()
             for url in urls {
-                openWindow(value: MapWindowRequest.draft(path: url.path, name: url.lastPathComponent))
+                // Item 10: the map appears in THIS window, not a new one.
+                session.apply(request: MapWindowRequest.draft(path: url.path, name: url.lastPathComponent))
             }
         }
         .dropDestination(for: URL.self) { urls, _ in
@@ -387,8 +388,14 @@ struct MapWindowRoot: View {
 
     private func openDrafts(_ urls: [URL]) {
         let folders = urls.filter { (try? $0.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true }
-        for url in folders {
-            openWindow(value: MapWindowRequest.draft(path: url.path, name: url.lastPathComponent))
+        for (index, url) in folders.enumerated() {
+            let request = MapWindowRequest.draft(path: url.path, name: url.lastPathComponent)
+            if index == 0 {
+                // Item 10: the first dropped folder opens in THIS window.
+                session.apply(request: request)
+            } else {
+                openWindow(value: request)
+            }
         }
     }
 }
