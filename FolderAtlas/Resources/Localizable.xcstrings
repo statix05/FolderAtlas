@@ -673,6 +673,22 @@
         }
       }
     },
+    "Customize Columns": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Customize Columns"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Настроить колонки"
+          }
+        }
+      }
+    },
     "Data": {
       "localizations": {
         "en": {
@@ -989,6 +1005,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Извлечь медиа-данные и EXIF"
+          }
+        }
+      }
+    },
+    "Features": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Features"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Возможности"
           }
         }
       }

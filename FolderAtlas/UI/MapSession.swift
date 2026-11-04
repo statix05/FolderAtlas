@@ -543,4 +543,11 @@ final class MapSession {
         let urls = nodes.filter { !$0.isDirectory }.map { absoluteURL(of: $0) }
         QuickLookCenter.shared.show(urls: Array(urls.prefix(50)))
     }
+
+    /// Space in the table: opens Quick Look for the selection, or closes an
+    /// already open preview panel (Finder-style, P3.5).
+    func quickLookToggle() {
+        let urls = selectedNodes.filter { !$0.isDirectory }.map { absoluteURL(of: $0) }
+        QuickLookCenter.shared.toggle(urls: Array(urls.prefix(50)))
+    }
 }

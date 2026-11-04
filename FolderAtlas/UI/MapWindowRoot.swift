@@ -47,6 +47,9 @@ struct MapWindowRoot: View {
         .onReceive(NotificationCenter.default.publisher(for: AppLibrary.exportRequestNotification)) { _ in
             if session.snapshot != nil, !session.isScanning { showExport = true }
         }
+        .onReceive(NotificationCenter.default.publisher(for: AppLibrary.filterRequestNotification)) { _ in
+            if session.snapshot != nil, !session.isScanning { showFilter = true }
+        }
         .fileImporter(isPresented: $showImporter, allowedContentTypes: [.folder],
                       allowsMultipleSelection: true) { result in
             if case .success(let urls) = result {
@@ -275,18 +278,7 @@ struct MapWindowRoot: View {
             .labelsHidden()
 
             Menu {
-                Toggle(String(localized: "Show Size on Disk"), isOn: $combinedSize)
-                    .help(Text("On APFS, size on disk can be SMALLER than the file size — transparent compression, sparse files and clones are normal. This is not a bug."))
-                Divider()
-                ForEach(NodeColumn.pickerCases) { column in
-                    Toggle(column.menuTitle, isOn: columnToggle(for: column))
-                }
-                Divider()
-                Button("Reset Columns") {
-                    session.columnLayout = .default
-                    session.sortOrder = ColumnSort.defaults
-                    NodeColumn.reset()
-                }
+                ColumnPickerContent(session: session)
             } label: {
                 Label("Columns", systemImage: "tablecells")
             }
@@ -365,27 +357,6 @@ struct MapWindowRoot: View {
             }
             .help("Show the inspector")
         }
-    }
-
-    private func columnToggle(for column: NodeColumn) -> Binding<Bool> {
-        Binding(
-            get: { session.columnLayout.visible.contains(column) },
-            set: { visible in
-                var layout = session.columnLayout
-                if visible {
-                    if !layout.visible.contains(column) {
-                        // Insert after the currently last "core" column to
-                        // keep a sensible order; exact order can be dragged
-                        // directly in the table header.
-                        layout.visible.append(column)
-                    }
-                } else {
-                    // The name column is the identity of the table — keep it.
-                    guard column != .name || layout.visible.count > 1 else { return }
-                    layout.visible.removeAll { $0 == column }
-                }
-                session.columnLayout = layout
-            })
     }
 
     // MARK: - Helpers

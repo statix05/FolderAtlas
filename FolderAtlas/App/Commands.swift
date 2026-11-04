@@ -120,6 +120,53 @@ struct AppCommands: Commands {
                 Toggle("Compute folder sizes and counts during scans", isOn: $computeFolderSizes)
             }
             .help(Text("These apply to the next scan; the current map keeps the settings it was scanned with."))
+
+            Divider()
+            Menu(String(localized: "Customize Columns")) {
+                if let session {
+                    ColumnPickerContent(session: session)
+                }
+            }
+            .disabled(session == nil)
+
+            Button(String(localized: "Filters")) {
+                NotificationCenter.default.post(name: AppLibrary.filterRequestNotification, object: nil)
+            }
+            .disabled(session?.snapshot == nil || session?.isScanning == true)
+        }
+
+        // MARK: Features — data enrichment and analysis (owner request: a
+        // dedicated section between Edit and View).
+
+        CommandMenu(String(localized: "Features")) {
+            Menu(String(localized: "Compute SHA-256")) {
+                ForEach(EnrichmentScope.allCases) { scope in
+                    Button(scope.title) { session?.computeChecksums(scope: scope) }
+                }
+            }
+            .disabled(session?.snapshot == nil || session?.isScanning == true)
+
+            Menu(String(localized: "Extract media & EXIF")) {
+                ForEach(EnrichmentScope.allCases) { scope in
+                    Button(scope.title) { session?.extractMediaMetadata(scope: scope) }
+                }
+            }
+            .disabled(session?.snapshot == nil || session?.isScanning == true)
+
+            Divider()
+            Button(String(localized: "Duplicates")) {
+                guard let session else { return }
+                Task { await session.findDuplicates() }
+            }
+            .disabled(session?.snapshot == nil || session?.isScanning == true || session?.isEnriching == true)
+
+            Button(String(localized: "Compare")) { session?.showDiff = true }
+                .disabled(session?.snapshot == nil)
+
+            Divider()
+            Button(String(localized: "Quick Look")) { session?.quickLookSelection() }
+                .keyboardShortcut(.space, modifiers: [])
+                .disabled(session?.selectedNodes.isEmpty ?? true)
         }
 
         // MARK: Help — merge into the system Help menu.

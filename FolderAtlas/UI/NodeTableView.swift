@@ -9,6 +9,25 @@ import os
 /// the app for minutes (sampled: AppKitOutlineTableCoordinator → endUpdates
 /// → _preparedRowViewForRow). NSTableView is lazy: reloadData touches only
 /// visible rows.
+// MARK: - Space → Quick Look
+
+/// NSOutlineView with Finder-style Space handling (P3.5): Space with no
+/// modifiers toggles Quick Look for the current selection. Arrows inside the
+/// open preview panel browse the datasource natively; Esc closes the panel.
+@MainActor
+final class SpaceAwareOutlineView: NSOutlineView {
+    var onSpace: (() -> Void)?
+
+    override func keyDown(with event: NSEvent) {
+        let mods = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        if event.keyCode == 49, mods.subtracting(.function).isEmpty, selectedRow >= 0, let onSpace {
+            onSpace()
+        } else {
+            super.keyDown(with: event)
+        }
+    }
+}
+
 struct NodeTableRepresentable: NSViewRepresentable {
     let session: MapSession
     let tree: Bool
@@ -86,7 +105,9 @@ struct NodeTableRepresentable: NSViewRepresentable {
         // MARK: View construction
 
         func makeView(session: MapSession) -> NSScrollView {
-            let table = NSOutlineView()
+            let table = SpaceAwareOutlineView()
+            // Finder-style Space: toggle Quick Look for the selection.
+            table.onSpace = { [weak session] in session?.quickLookToggle() }
             // Custom header: the ONLY sort trigger. AppKit's delegate
             // didClickTableColumn proved unreliable here (never fired for the
             // owner's real clicks), so clicks are detected directly on the

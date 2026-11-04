@@ -11,8 +11,10 @@ final class AppLibrary {
     static let folderRequestNotification = Notification.Name("AppLibrary.folderRequest")
     /// Global menu: File > Save Map… opens the save sheet in the focused window.
     static let saveRequestNotification = Notification.Name("AppLibrary.saveRequest")
-    /// Global menu: File > Export Map… opens the export sheet in the focused window.
+    /// Global menu: File > Export Map... opens the export sheet in the focused window.
     static let exportRequestNotification = Notification.Name("AppLibrary.exportRequest")
+    /// Global menu: View > Filters opens the filter popover in the focused window.
+    static let filterRequestNotification = Notification.Name("AppLibrary.filterRequest")
 
     private(set) var savedMaps: [SnapshotHeader] = []
     private(set) var rejectedCount = 0

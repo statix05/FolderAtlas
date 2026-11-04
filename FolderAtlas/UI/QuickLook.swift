@@ -19,6 +19,17 @@ final class QuickLookCenter: NSObject {
         panel.makeKeyAndOrderFront(nil)
         panel.reloadData()
     }
+
+    /// Finder-style toggle: Space opens the preview for the given items, and
+    /// pressing Space again (with the table focused again) closes it.
+    func toggle(urls: [URL]) {
+        guard let panel = QLPreviewPanel.shared() as QLPreviewPanel? else { return }
+        if panel.isVisible {
+            panel.orderOut(nil)
+        } else {
+            show(urls: urls)
+        }
+    }
 }
 
 @MainActor
