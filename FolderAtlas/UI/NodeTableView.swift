@@ -16,11 +16,11 @@ struct NodeTableRepresentable: NSViewRepresentable {
         Coordinator(tree: tree)
     }
 
-    func makeNSView(context: Context) -> NSOutlineView {
+    func makeNSView(context: Context) -> NSScrollView {
         context.coordinator.makeView(session: session)
     }
 
-    func updateNSView(_ nsView: NSOutlineView, context: Context) {
+    func updateNSView(_ nsView: NSScrollView, context: Context) {
         context.coordinator.sync(session: session)
     }
 
@@ -46,6 +46,7 @@ struct NodeTableRepresentable: NSViewRepresentable {
         private let tree: Bool
         private var session: MapSession?
         private var table: NSOutlineView?
+        private var scrollView: NSScrollView?
 
         private static let emptyBox = ItemBox(NodeRow(NodeRecord(
             id: -1, parentID: nil, name: "", relativePath: "", ext: nil,
@@ -79,7 +80,7 @@ struct NodeTableRepresentable: NSViewRepresentable {
 
         // MARK: View construction
 
-        func makeView(session: MapSession) -> NSOutlineView {
+        func makeView(session: MapSession) -> NSScrollView {
             let table = NSOutlineView()
             table.headerView = NSTableHeaderView()
             table.allowsColumnReordering = true
@@ -91,6 +92,7 @@ struct NodeTableRepresentable: NSViewRepresentable {
             table.rowSizeStyle = .custom
             table.usesAutomaticRowHeights = false
             table.indentationPerLevel = 14
+            table.columnAutoresizingStyle = .uniformColumnAutoresizingStyle
             table.dataSource = self
             table.delegate = self
             table.target = self
@@ -98,6 +100,18 @@ struct NodeTableRepresentable: NSViewRepresentable {
             self.table = table
             self.session = session
             rebuildColumns(session: session)
+            table.sizeLastColumnToFit()
+
+            // An NSTableView MUST live inside an NSScrollView — otherwise no
+            // header display and no scrolling (regression found in the field).
+            let scrollView = NSScrollView()
+            scrollView.documentView = table
+            scrollView.hasVerticalScroller = true
+            scrollView.hasHorizontalScroller = true
+            scrollView.autohidesScrollers = true
+            scrollView.allowsMagnification = false
+            scrollView.drawsBackground = true
+            self.scrollView = scrollView
 
             let center = NotificationCenter.default
             notificationObservers.append(center.addObserver(
@@ -108,7 +122,7 @@ struct NodeTableRepresentable: NSViewRepresentable {
                 forName: NSTableView.columnDidResizeNotification, object: table, queue: .main) { [weak self] _ in
                 self?.persistColumnLayout()
             })
-            return table
+            return scrollView
         }
 
         private func rebuildColumns(session: MapSession) {
@@ -126,6 +140,7 @@ struct NodeTableRepresentable: NSViewRepresentable {
                 table.addTableColumn(tableColumn)
             }
             table.outlineTableColumn = table.tableColumns.first
+            table.sizeLastColumnToFit()
             appliedLayout = session.columnLayout
         }
 
