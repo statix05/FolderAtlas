@@ -98,6 +98,9 @@ struct NodeTableRepresentable: NSViewRepresentable {
             header.onHeaderClick = { [weak self] tableColumn in
                 self?.handleHeaderClick(tableColumn)
             }
+            header.onAutofit = { [weak self] tableColumn in
+                self?.autofitColumn(tableColumn)
+            }
             table.allowsColumnReordering = true
             table.allowsColumnResizing = true
             table.allowsMultipleSelection = true
@@ -393,26 +396,24 @@ struct NodeTableRepresentable: NSViewRepresentable {
             expandedIDs.remove(box.row.id)
         }
 
-        /// Excel-style autofit: double-click on the resize border fits the
-        /// column to its longest cell. AppKit calls this synchronously on the
-        /// main thread, so measurement runs off-main and the real width is
-        /// applied the moment it is ready (no freeze on million-row maps).
-        func tableView(_ tableView: NSTableView, sizeToFitWidthOfColumn columnIndex: Int) -> CGFloat {
-            guard let session, columnIndex < tableView.tableColumns.count else { return 0 }
-            let tableColumn = tableView.tableColumns[columnIndex]
+        /// Excel-style autofit, triggered by SortHeader on a border
+        /// double-click. Measurement runs off-main, the width applies when
+        /// ready (no freeze on million-row maps).
+        func autofitColumn(_ tableColumn: NSTableColumn) {
+            guard let session else { return }
             guard let nodeColumn = NodeColumn(rawValue: tableColumn.identifier.rawValue) else {
-                return tableColumn.width
+                return
             }
             let rows = session.visibleRows.map(\.record)
-            let current = tableColumn.width
+            let table = self.table
             Self.log.info("autofit requested \(nodeColumn.rawValue, privacy: .public) rows=\(rows.count)")
             Task.detached(priority: .userInitiated) { [weak self] in
                 guard let fitted = await ColumnFit.fittedWidth(for: nodeColumn, rows: rows) else { return }
                 await MainActor.run {
-                    self?.applyFittedWidth(nodeColumn, width: fitted, table: tableView)
+                    guard let table else { return }
+                    self?.applyFittedWidth(nodeColumn, width: fitted, table: table)
                 }
             }
-            return current
         }
 
         private func applyFittedWidth(_ column: NodeColumn, width: CGFloat, table: NSTableView) {
@@ -498,11 +499,20 @@ struct NodeTableRepresentable: NSViewRepresentable {
 /// super.mouseDown's tracking loop.
 final class SortHeader: NSTableHeaderView {
     var onHeaderClick: ((NSTableColumn) -> Void)?
+    var onAutofit: ((NSTableColumn) -> Void)?
 
     override func mouseDown(with event: NSEvent) {
+        let local = convert(event.locationInWindow, from: nil)
+        let onBorder = isOnColumnBorder(local)
         let start = event.locationInWindow
         let startTime = event.timestamp
-        let onBorder = isOnColumnBorder(convert(event.locationInWindow, from: nil))
+        // Excel-style autofit: double-click on a column border fits the column
+        // to the LEFT of that border. AppKit's own sizeToFitWidthOfColumn
+        // delegate proved dead on this OS (never invoked), so detection is
+        // done here via clickCount.
+        if onBorder, event.clickCount >= 2, let column = leftColumn(atDivider: local) {
+            onAutofit?(column)
+        }
         super.mouseDown(with: event) // blocks until tracking ends
         // Border interactions belong to resize/autofit — never to sorting
         // (the owner reported: border clicks sorted instead of resizing).
@@ -512,11 +522,30 @@ final class SortHeader: NSTableHeaderView {
         let dy = up.locationInWindow.y - start.y
         guard dx * dx + dy * dy < 25, up.timestamp - startTime < 0.6,
               up.type == .leftMouseUp || up.type == .rightMouseUp else { return }
-        let local = convert(up.locationInWindow, from: nil)
-        let index = column(at: local)
+        let clickPoint = convert(up.locationInWindow, from: nil)
+        let index = column(at: clickPoint)
         guard index >= 0, let tableView,
               index < tableView.tableColumns.count else { return }
         onHeaderClick?(tableView.tableColumns[index])
+    }
+
+    /// The column to the LEFT of the divider nearest to the given point
+    /// (Excel semantics: double-clicking the right border of column X fits X).
+    private func leftColumn(atDivider local: NSPoint) -> NSTableColumn? {
+        guard let tableView else { return nil }
+        var best: (column: NSTableColumn, distance: CGFloat)?
+        let count = tableView.tableColumns.count
+        for index in 0..<count {
+            let rect = tableView.rect(ofColumn: index)
+            // The divider AFTER this column (its trailing edge).
+            let candidates: [(NSTableColumn, CGFloat)] = [
+                (tableView.tableColumns[index], abs(local.x - rect.maxX))
+            ]
+            for (column, distance) in candidates where best == nil || distance < best!.distance {
+                best = (column, distance)
+            }
+        }
+        return best?.column
     }
 
     /// True when the point sits within ±4 pt of any column edge (a divider or
