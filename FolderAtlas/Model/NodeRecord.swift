@@ -6,6 +6,17 @@ enum NodeKind: String, Codable, Sendable, CaseIterable {
     case folder
     case symlink
     case package
+
+    /// Fixed ordering rank for the Kind column (no localized strings on the
+    /// sort hot path).
+    var rank: Int {
+        switch self {
+        case .file: return 0
+        case .folder: return 1
+        case .package: return 2
+        case .symlink: return 3
+        }
+    }
 }
 
 /// Optional image metadata extracted with ImageIO (on demand).
@@ -75,6 +86,11 @@ struct NodeRecord: Codable, Sendable, Hashable, Identifiable {
     var notDownloaded: Bool
     /// Per-item error captured during scanning; the scan itself continues.
     var error: String?
+    /// Precomputed folding key of `name` for fast sorting (nil in snapshots
+    /// saved before schema v2; filled on load).
+    var nameSortKey: String?
+    /// Precomputed folding key of `relativePath` for fast sorting.
+    var pathSortKey: String?
 
     var kind: NodeKind {
         if isSymlink && !isDirectory { return .symlink }
@@ -85,6 +101,18 @@ struct NodeRecord: Codable, Sendable, Hashable, Identifiable {
     var hasChildren: Bool { isDirectory }
 
     var displayName: String { name.isEmpty ? "/" : name }
+
+    /// Returns the record with sort keys computed — used when loading
+    /// snapshots saved before schema v2.
+    func withSortKeys() -> NodeRecord {
+        if nameSortKey != nil, pathSortKey != nil { return self }
+        var copy = self
+        if copy.nameSortKey == nil { copy.nameSortKey = SortKey.make(name) }
+        if copy.pathSortKey == nil {
+            copy.pathSortKey = relativePath.isEmpty ? SortKey.make(name) : SortKey.make(relativePath)
+        }
+        return copy
+    }
 
     static func extensionOf(_ name: String) -> String? {
         guard !name.hasPrefix(".") else {

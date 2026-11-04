@@ -34,46 +34,41 @@ final class MapSession {
     // Data
     private(set) var snapshot: Snapshot? {
         didSet {
-            refilter()
+            scheduleRebuild(tree: layout == .tree)
             selection.removeAll()
-            builtTree = nil
         }
     }
 
     var filter = FilterCriteria() {
         didSet {
-            if oldValue != filter { refilter() }
+            if oldValue != filter { scheduleRebuild(tree: false) }
         }
     }
 
     private(set) var filtered: [NodeRecord] = []
-    /// Cached aggregates of the filtered set (updated by refilter) so the
-    /// status bar never re-scans the array on every render.
+    /// Cached aggregates of the filtered set (updated by the row rebuild job).
     private(set) var filteredFiles = 0
     private(set) var filteredFolders = 0
     private(set) var filteredSize: Int64 = 0
 
-    /// Rows are cached and sorted once per change — not re-built on every
-    /// SwiftUI body evaluation (critical for maps with hundreds of thousands
-    /// of rows).
-    private var rowsCache: [NodeRow]?
+    /// Rows shown by the list/table. Rebuilt OFF the main thread (filtering +
+    /// mapping + sorting a huge map takes seconds), so the UI stays
+    /// responsive and keeps showing the previous order until the new one is
+    /// ready. See the 2026-11-04 perf work.
+    private(set) var visibleRows: [NodeRow] = []
+
+    /// Outline data for the tree layout; built together with rows on demand.
+    private(set) var treeRows: [NodeRow]? = nil
+    /// Guards against out-of-order row rebuilds.
+    @ObservationIgnored private var rebuildGeneration = 0
 
     /// Folders and packages always sort before files.
     var foldersFirst: Bool {
         get { UserDefaults.standard.object(forKey: "sort.foldersFirst") as? Bool ?? true }
         set {
             UserDefaults.standard.set(newValue, forKey: "sort.foldersFirst")
-            rowsCache = nil
+            scheduleRebuild(tree: layout == .tree)
         }
-    }
-
-    var visibleRows: [NodeRow] {
-        if let rowsCache { return rowsCache }
-        let sorted = RowSorting.apply(filtered.map { NodeRow($0) },
-                                      sortOrder: sortOrder,
-                                      foldersFirst: foldersFirst)
-        rowsCache = sorted
-        return sorted
     }
 
     var selection: Set<Int64> = []
@@ -81,7 +76,7 @@ final class MapSession {
     var sortOrder: [ColumnSort] = NodeColumn.loadSort() {
         didSet {
             NodeColumn.saveSort(sortOrder)
-            rowsCache = nil
+            scheduleRebuild(tree: layout == .tree)
         }
     }
 
@@ -102,35 +97,13 @@ final class MapSession {
         }
     }
 
-    private var builtTree: [NodeRow]?
-
-    /// Lazily built outline data for the tree layout.
-    var treeRows: [NodeRow]? {
-        guard let snapshot else { return nil }
-        if builtTree == nil {
-            builtTree = Self.buildTreeRows(from: snapshot)
-        }
-        return builtTree
-    }
-
-    private static func buildTreeRows(from snapshot: Snapshot) -> [NodeRow] {
-        let foldersFirst = UserDefaults.standard.object(forKey: "sort.foldersFirst") as? Bool ?? true
-        func makeRow(_ record: NodeRecord) -> NodeRow {
-            let kids = snapshot.children(of: record.id)
-            if kids.isEmpty {
-                return NodeRow(record)
+    var layout: Layout = .list {
+        didSet {
+            if oldValue != layout, layout == .tree, treeRows == nil {
+                scheduleRebuild(tree: true)
             }
-            let childRows = RowSorting.apply(kids.map { NodeRow($0) },
-                                             sortOrder: NodeColumn.loadSort(),
-                                             foldersFirst: foldersFirst)
-                .map { row -> NodeRow in makeRow(row.record) }
-            return NodeRow(record, children: childRows)
         }
-        guard let root = snapshot.root else { return [] }
-        return [makeRow(root)]
     }
-
-    var layout: Layout = .list
     var inspectorVisible = true
 
     // Scan state
@@ -260,36 +233,74 @@ final class MapSession {
         }
     }
 
-    // MARK: - Filtering & derived data
+    // MARK: - Filtering & derived data (off-main-thread)
 
-    private func refilter() {
-        rowsCache = nil
+    /// Schedules an async rebuild of filtered rows/aggregates (and optionally
+    /// the outline tree). Results are applied on the main actor only if this
+    /// generation is still current — rapid sort/filter changes never race.
+    private func scheduleRebuild(tree: Bool) {
+        rebuildGeneration += 1
+        let generation = rebuildGeneration
         guard let snapshot else {
+            visibleRows = []
+            treeRows = nil
             filtered = []
             filteredFiles = 0
             filteredFolders = 0
             filteredSize = 0
             return
         }
-        if filter.isEmpty {
-            filtered = snapshot.nodes
-        } else {
-            filtered = snapshot.nodes.filter { filter.matches($0) }
-        }
-        var files = 0
-        var folders = 0
-        var size: Int64 = 0
-        for node in filtered {
-            if node.isDirectory {
-                folders += 1
-            } else {
-                files += 1
-                if let nodeSize = node.size { size += nodeSize }
+        let filter = filter
+        let sortOrder = sortOrder
+        let foldersFirst = foldersFirst
+        let needsTree = tree || (layout == .tree && treeRows == nil)
+        Task.detached(priority: .userInitiated) { [weak self] in
+            let filtered = filter.isEmpty ? snapshot.nodes : snapshot.nodes.filter { filter.matches($0) }
+            var files = 0
+            var folders = 0
+            var size: Int64 = 0
+            for node in filtered {
+                if node.isDirectory {
+                    folders += 1
+                } else {
+                    files += 1
+                    if let nodeSize = node.size { size += nodeSize }
+                }
+            }
+            let rows = RowSorting.apply(filtered.map { NodeRow($0) },
+                                        sortOrder: sortOrder,
+                                        foldersFirst: foldersFirst)
+            let tree: [NodeRow]? = needsTree ? Self.buildTreeRows(from: snapshot,
+                                                                  sortOrder: sortOrder,
+                                                                  foldersFirst: foldersFirst) : nil
+            await MainActor.run {
+                guard let self, generation == self.rebuildGeneration else { return }
+                self.filtered = filtered
+                self.filteredFiles = files
+                self.filteredFolders = folders
+                self.filteredSize = size
+                self.visibleRows = rows
+                if needsTree { self.treeRows = tree }
             }
         }
-        filteredFiles = files
-        filteredFolders = folders
-        filteredSize = size
+    }
+
+    nonisolated private static func buildTreeRows(from snapshot: Snapshot,
+                                      sortOrder: [ColumnSort],
+                                      foldersFirst: Bool) -> [NodeRow] {
+        func makeRow(_ record: NodeRecord) -> NodeRow {
+            let kids = snapshot.children(of: record.id)
+            if kids.isEmpty {
+                return NodeRow(record)
+            }
+            let childRows = RowSorting.apply(kids.map { NodeRow($0) },
+                                             sortOrder: sortOrder,
+                                             foldersFirst: foldersFirst)
+                .map { row -> NodeRow in makeRow(row.record) }
+            return NodeRow(record, children: childRows)
+        }
+        guard let root = snapshot.root else { return [] }
+        return [makeRow(root)]
     }
 
     var selectedNodes: [NodeRecord] {

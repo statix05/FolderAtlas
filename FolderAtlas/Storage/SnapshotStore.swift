@@ -72,6 +72,10 @@ enum SnapshotStore {
             }
         }
         // Migration point: when schemaVersion < current, transform here.
+        // v1 → v2: precomputed sort keys were introduced; fill them for old files.
+        if header.schemaVersion < 2 {
+            nodes = nodes.map { $0.withSortKeys() }
+        }
         return Snapshot(header: header, nodes: nodes)
     }
 

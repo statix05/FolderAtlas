@@ -84,9 +84,12 @@ struct ColumnSort: SortComparator, Hashable, Sendable {
     private func compareValues(_ a: NodeRecord, _ b: NodeRecord) -> ComparisonResult {
         switch column {
         case .name:
-            return a.name.localizedStandardCompare(b.name)
+            return SortKey.compareKeys(a.nameSortKey ?? SortKey.make(a.name),
+                                       b.nameSortKey ?? SortKey.make(b.name))
         case .kind:
-            return a.name == b.name ? .orderedSame : (NodeFormatters.kindName(a.kind).localizedStandardCompare(NodeFormatters.kindName(b.kind)))
+            // Fixed kind ranking — no localized strings on the hot path.
+            return a.kind.rank == b.kind.rank ? .orderedSame
+                : (a.kind.rank < b.kind.rank ? .orderedAscending : .orderedDescending)
         case .ext:
             return optionalString(a.ext, b.ext)
         case .size:
@@ -98,9 +101,11 @@ struct ColumnSort: SortComparator, Hashable, Sendable {
         case .modified:
             return optionalDate(a.modified, b.modified)
         case .tags:
-            return (a.tags ?? []).joined(separator: ", ").localizedStandardCompare((b.tags ?? []).joined(separator: ", "))
+            return plainString((a.tags ?? []).joined(separator: ", "),
+                               (b.tags ?? []).joined(separator: ", "))
         case .path:
-            return a.relativePath.localizedStandardCompare(b.relativePath)
+            return SortKey.compareKeys(a.pathSortKey ?? SortKey.make(a.relativePath),
+                                       b.pathSortKey ?? SortKey.make(b.relativePath))
         case .items:
             return optionalNumber(a.childCount, b.childCount)
         case .nestedItems:
@@ -129,8 +134,14 @@ struct ColumnSort: SortComparator, Hashable, Sendable {
         case (nil, nil): return .orderedSame
         case (nil, _): return .orderedAscending
         case (_, nil): return .orderedDescending
-        case (let x?, let y?): return x.localizedStandardCompare(y)
+        case (let x?, let y?): return plainString(x, y)
         }
+    }
+
+    /// Plain byte-ish comparison — no ICU collation on the hot path.
+    private func plainString(_ x: String, _ y: String) -> ComparisonResult {
+        if x == y { return .orderedSame }
+        return x < y ? .orderedAscending : .orderedDescending
     }
 
     private func optionalNumber(_ a: Int64?, _ b: Int64?) -> ComparisonResult {

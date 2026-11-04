@@ -2,7 +2,7 @@ import Foundation
 
 /// Header of a saved snapshot — metadata about the scan, not the nodes.
 struct SnapshotHeader: Codable, Sendable, Hashable, Identifiable {
-    static let schemaVersion = 1
+    static let schemaVersion = 2
 
     var schemaVersion: Int
     var id: UUID

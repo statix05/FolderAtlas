@@ -215,7 +215,9 @@ enum ScanEngine {
             size: rootStat.size, allocSize: rootStat.allocSize,
             created: rootStat.created, modified: rootStat.modified,
             tags: (try? root.resourceValues(forKeys: [.tagNamesKey]).tagNames) ?? nil,
-            notDownloaded: false)
+            notDownloaded: false,
+            nameSortKey: SortKey.make(root.lastPathComponent.isEmpty ? "/" : root.lastPathComponent),
+            pathSortKey: nil)
         await state.add([rootRecord])
         await state.countFolder()
         _ = await state.visit(InodeKey(dev: rootStat.dev, ino: rootStat.ino))
@@ -396,7 +398,9 @@ enum ScanEngine {
             modified: modified,
             tags: tags,
             notDownloaded: notDownloaded,
-            error: error)
+            error: error,
+            nameSortKey: SortKey.make(name),
+            pathSortKey: SortKey.make(relativePath.isEmpty ? name : relativePath))
     }
 }
 
