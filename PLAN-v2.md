@@ -68,8 +68,12 @@ compression resistance (truncates вместо выталкивания икон
 реентерабельность — columnDidResize/Move уведомления срабатывают ВНУТРИ rebuildColumns →
 persistColumnLayout пишет session.columnLayout → повторный rebuild. Решение: флаг isRebuilding
 (гасить persist во время пересборки) + uniqued у visible + один persist после пересборки.
-- [ ] флаг + uniqued + persist
-- [ ] проверка владельцем (потыкать меню столбцов быстро)
+- [x] флаг + uniqued + persist (первый заход был insufficient — см. ниже)
+- [x] НАСТОЯЩАЯ причина: NSOutlineView нельзя удалить outline-колонку через removeTableColumn:
+      (AppKit: "cannot remove outlineTableColumn") — старая rebuild оставляла её и добавляла дубль.
+      TableColumnRebuilder: перекинуть outline на выживающую колонку → удалить лишние → добавить
+      недостающие → moveColumn доворот порядка. Регресс-тесты TableColumnRebuilderTests (5).
+- [ ] проверка владельцем (потыкать меню столбцов быстро; переставить Имя/Тип; потогать)
 
 ### P2.7 — Ясность названий и содержимого столбцов (от владельца)
 - [ ] «Размеры» → «Разрешение» (media pixel dimensions)
