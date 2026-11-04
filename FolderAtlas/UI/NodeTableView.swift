@@ -519,17 +519,25 @@ final class SortHeader: NSTableHeaderView {
         onHeaderClick?(tableView.tableColumns[index])
     }
 
-    /// True when the point sits within ±4 pt of a column divider or the last
-    /// column's trailing edge — the resize zone (single click, drag, or
-    /// double-click for autofit must NOT trigger sorting).
-    private func isOnColumnBorder(_ local: NSPoint) -> Bool {
-        guard let tableView, !tableView.tableColumns.isEmpty else { return false }
-        var x: CGFloat = 0
-        for tableColumn in tableView.tableColumns {
-            x += tableColumn.width
-            if abs(local.x - x) <= 4 { return true }
+    /// True when the point sits within ±4 pt of any column edge (a divider or
+    /// the last column's trailing edge), or in a gap between columns — the
+    /// resize/autofit zone. Geometry comes from the table itself
+    /// (rect(ofColumn:)). The previous hand-rolled sum ignored intercell
+    /// spacing (17 pt here) and drifted column by column, so visual borders
+    /// sorted instead of resizing.
+    /// visible for tests
+    func isOnColumnBorder(_ local: NSPoint) -> Bool {
+        guard let tableView else { return false }
+        let count = tableView.tableColumns.count
+        guard count > 0 else { return false }
+        let rects = (0..<count).map { tableView.rect(ofColumn: $0) }
+        for (index, rect) in rects.enumerated() {
+            if abs(local.x - rect.minX) <= 4 { return true }
+            if abs(local.x - rect.maxX) <= 4 { return true }
+            if local.x < rect.minX { return true } // inside a gap
+            if local.x <= rect.maxX { return false } // inside the column body
         }
-        return false
+        return true // beyond the last column
     }
 }
 
