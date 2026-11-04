@@ -753,6 +753,22 @@
         }
       }
     },
+    "Discard Unsaved Map": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard Unsaved Map"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отбросить несохранённую карту"
+          }
+        }
+      }
+    },
     "Duplicates": {
       "localizations": {
         "en": {
@@ -3197,6 +3213,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Несохранённая карта"
+          }
+        }
+      }
+    },
+    "Unsaved maps": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unsaved maps"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Несохранённые"
           }
         }
       }

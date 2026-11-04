@@ -11,21 +11,35 @@ struct SidebarView: View {
 
     var body: some View {
         List {
+            // Unsaved maps (in-memory drafts): asterisk marker, available
+            // until the app quits even after switching to a saved map or
+            // closing windows. Temporary SF Symbol "asterisk" — will become
+            // the Nerd Font glyph (item 5 / P7).
             Section {
-                // The current window's unsaved map (draft), marked with a star
-                // until it is saved. Temporary SF Symbol "star"; will become
-                // the Nerd Font glyph nf-fa-star_of_life when the bundled
-                // Nerd Font lands (item 5 / P7).
-                if session.isDraft {
+                ForEach(library.drafts) { draft in
                     HStack {
-                        Label(session.displayName.isEmpty
-                              ? String(localized: "Unsaved map")
-                              : session.displayName,
-                              systemImage: "star")
+                        Label(draft.displayName, systemImage: "asterisk")
                             .lineLimit(1)
                     }
+                    .contentShape(Rectangle())
                     .help(Text("This map is not saved yet"))
+                    .onTapGesture {
+                        session.apply(request: MapWindowRequest.existingDraft(draft.id))
+                    }
+                    .contextMenu {
+                        Button(role: .destructive) {
+                            library.discardDraft(id: draft.id)
+                        } label: {
+                            Label("Discard Unsaved Map", systemImage: "trash")
+                        }
+                    }
                 }
+            } header: {
+                if !library.drafts.isEmpty {
+                    Text("Unsaved maps")
+                }
+            }
+            Section {
                 ForEach(library.savedMaps) { header in
                     mapRow(header)
                 }

@@ -63,6 +63,52 @@ final class AppLibrary {
         return urls
     }
 
+    // MARK: - Unsaved maps (in-memory drafts; live until the app quits)
+
+    /// An unsaved map. Held in memory only — closing windows or switching to
+    /// a saved map does NOT discard it; quitting the app does (owner request).
+    @Observable
+    final class DraftMap: Identifiable {
+        let id = UUID()
+        var displayName: String
+        var sourcePath: String
+        var snapshot: Snapshot?
+
+        init(displayName: String, sourcePath: String) {
+            self.displayName = displayName
+            self.sourcePath = sourcePath
+        }
+    }
+
+    private(set) var drafts: [DraftMap] = []
+
+    /// Registers (or reuses, by source path) an unsaved map.
+    @discardableResult
+    func openDraft(sourcePath: String, name: String) -> DraftMap {
+        if let existing = drafts.first(where: { $0.sourcePath == sourcePath }) {
+            return existing
+        }
+        let draft = DraftMap(
+            displayName: name.isEmpty ? URL(fileURLWithPath: sourcePath).lastPathComponent : name,
+            sourcePath: sourcePath)
+        drafts.insert(draft, at: 0)
+        return draft
+    }
+
+    func updateDraft(id: UUID, displayName: String, snapshot: Snapshot?) {
+        guard let index = drafts.firstIndex(where: { $0.id == id }) else { return }
+        drafts[index].displayName = displayName
+        drafts[index].snapshot = snapshot
+    }
+
+    func discardDraft(id: UUID) {
+        drafts.removeAll { $0.id == id }
+    }
+
+    func draft(id: UUID) -> DraftMap? {
+        drafts.first { $0.id == id }
+    }
+
     /// Accepts folder URLs from Finder Services / dock drops / open events.
     /// Non-folders are counted as rejected and ignored.
     func submit(urls: [URL]) {

@@ -31,6 +31,7 @@ final class MapSession {
 
     // Identity
     var request: MapWindowRequest?
+    var draftID: UUID?
     private(set) var isDraft = true
     var displayName: String = ""
 
@@ -158,11 +159,27 @@ final class MapSession {
         if let id = request.snapshotID {
             isDraft = false
             Task { await loadSnapshot(id: id) }
+        } else if let draftID = request.draftID {
+            isDraft = true
+            loadDraft(id: draftID)
         } else if let path = request.sourcePath {
             isDraft = true
             displayName = URL(fileURLWithPath: path).lastPathComponent
             Task { await startScan(at: URL(fileURLWithPath: path)) }
         }
+    }
+
+    /// Restores an in-memory unsaved map registered in AppLibrary.
+    func loadDraft(id: UUID) {
+        guard let draft = AppLibrary.shared.draft(id: id) else {
+            scanError = String(localized: "This map is not saved yet")
+            return
+        }
+        self.draftID = id
+        snapshot = draft.snapshot
+        displayName = draft.displayName
+        filter = FilterCriteria()
+        checkSourceAvailability()
     }
 
     func loadSnapshot(id: UUID) async {
@@ -195,6 +212,9 @@ final class MapSession {
         progress = ScanProgress()
         if request == nil { request = MapWindowRequest.draft(path: url.path, name: nil) }
         displayName = displayName.isEmpty ? url.lastPathComponent : displayName
+        if draftID == nil || AppLibrary.shared.draft(id: draftID!) == nil {
+            draftID = AppLibrary.shared.openDraft(sourcePath: url.path, name: displayName).id
+        }
 
         scanTask = Task {
             do {
@@ -238,6 +258,9 @@ final class MapSession {
             totalSize: output.stats.totalSize,
             durationSeconds: output.stats.durationSeconds)
         snapshot = Snapshot(header: header, nodes: output.nodes)
+        if let draftID {
+            AppLibrary.shared.updateDraft(id: draftID, displayName: name, snapshot: snapshot)
+        }
         if output.cancelled {
             notice = String(localized: "Scan cancelled — the map is incomplete.")
         }
@@ -354,6 +377,10 @@ final class MapSession {
             self.snapshot = snapshot
             displayName = name
             isDraft = false
+            if let draftID {
+                AppLibrary.shared.discardDraft(id: draftID) // saved → no longer unsaved
+                self.draftID = nil
+            }
             AppLibrary.shared.reload()
             notice = String(localized: "Map saved.")
         } catch {
