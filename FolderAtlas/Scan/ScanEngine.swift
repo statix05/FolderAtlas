@@ -143,7 +143,7 @@ enum ScanEngine {
         /// Throttled progress snapshot; returns nil when reporting too frequently.
         func reportProgress(currentPath: String) -> ScanProgress? {
             let now = Date()
-            guard now.timeIntervalSince(lastReport) > 0.15 else { return nil }
+            guard now.timeIntervalSince(lastReport) > 0.5 else { return nil }
             lastReport = now
             return ScanProgress(files: fileCount, folders: folderCount, errors: errorCount,
                                 bytesProcessed: totalSize, currentPath: currentPath)

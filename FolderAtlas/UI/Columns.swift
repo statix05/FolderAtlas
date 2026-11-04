@@ -166,6 +166,34 @@ struct ColumnSort: SortComparator, Hashable, Sendable {
 /// Recursive row type for the outline (tree) table — removed in favour of
 /// `NodeRow.children`.
 
+/// Sorting of table/outline rows. SwiftUI `Table` does NOT sort the data
+/// itself — the sorted array must be fed to the table.
+enum RowSorting {
+    static func apply(_ rows: [NodeRow], sortOrder: [ColumnSort], foldersFirst: Bool) -> [NodeRow] {
+        let comparators = sortOrder.isEmpty ? ColumnSort.defaults : sortOrder
+        return rows.sorted { a, b in
+            if foldersFirst {
+                let ka = rank(a.record)
+                let kb = rank(b.record)
+                if ka != kb { return ka < kb }
+            }
+            for comparator in comparators {
+                let result = comparator.compare(a, b)
+                if result != .orderedSame { return result == .orderedAscending }
+            }
+            return a.id < b.id
+        }
+    }
+
+    /// Folders and packages first (rank 0), everything else after.
+    private static func rank(_ node: NodeRecord) -> Int {
+        switch node.kind {
+        case .folder, .package: return 0
+        case .file, .symlink: return 1
+        }
+    }
+}
+
 /// SF Symbols for node kinds — only real system symbol names.
 enum NodeIcons {
     static func symbol(for node: NodeRecord) -> String {

@@ -53,6 +53,10 @@ struct FilterPopover: View {
                         }))
                 }
             }
+            Divider()
+            Toggle("Folders on top", isOn: Binding(
+                get: { session.foldersFirst },
+                set: { session.foldersFirst = $0 }))
         }
     }
 

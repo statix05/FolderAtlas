@@ -60,7 +60,7 @@
 			<key>NSMenuItem</key>
 			<dict>
 				<key>default</key>
-				<string>Make Folder Map</string>
+				<string>Create Folder Map</string>
 			</dict>
 			<key>NSSendTypes</key>
 			<array>

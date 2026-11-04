@@ -13,6 +13,15 @@ final class AppLibrary {
     private(set) var savedMaps: [SnapshotHeader] = []
     private(set) var rejectedCount = 0
 
+    /// True while Finder-service exports are running. Set before the SwiftUI
+    /// scenes appear so a cold service launch can hide its window and quit
+    /// when the exports finish.
+    private(set) var serviceMode = false
+    private var serviceWorkPending = 0
+
+    /// Whether service-triggered exports are still running.
+    var serviceWorkRunning: Bool { serviceWorkPending > 0 }
+
     private var pendingURLs: [URL] = []
 
     private init() {
@@ -21,6 +30,29 @@ final class AppLibrary {
 
     func reload() {
         savedMaps = SnapshotStore.list()
+    }
+
+    /// Called by the services provider when work starts.
+    func beginServiceWork(folderCount: Int) {
+        serviceMode = true
+        serviceWorkPending += folderCount
+    }
+
+    /// Called when all service exports finished. If the app was launched by
+    /// the service, hide and terminate; a normally-running instance stays open.
+    func endServiceWork() {
+        serviceWorkPending = max(0, serviceWorkPending - 1)
+        guard serviceWorkPending == 0, serviceMode else { return }
+        NSApp.hide(nil)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            NSApp.terminate(nil)
+        }
+    }
+
+    /// Normal (non-service) launch: cancel the terminate-on-idle behaviour.
+    func cancelServiceMode() {
+        serviceMode = false
+        serviceWorkPending = 0
     }
 
     /// Takes (and clears) all pending folder requests. First caller wins;

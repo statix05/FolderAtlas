@@ -1,20 +1,26 @@
 {
-  "images": [
+  "images" : [
     {
-      "filename": "AppIcon1024.png",
-      "idiom": "universal",
-      "platform": "ios",
-      "size": "1024x1024"
+      "filename" : "AppIcon-light.png",
+      "idiom" : "universal",
+      "platform" : "macos",
+      "size" : "512x512@2x"
     },
     {
-      "filename": "AppIcon1024.png",
-      "idiom": "universal",
-      "platform": "macos",
-      "size": "512x512@2x"
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "dark"
+        }
+      ],
+      "filename" : "AppIcon-dark.png",
+      "idiom" : "universal",
+      "platform" : "macos",
+      "size" : "512x512@2x"
     }
   ],
-  "info": {
-    "author": "xcode",
-    "version": 1
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
   }
 }

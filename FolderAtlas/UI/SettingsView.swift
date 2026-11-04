@@ -5,6 +5,7 @@ struct SettingsView: View {
     @AppStorage("scan.includeHidden") private var includeHidden = true
     @AppStorage("scan.includePackages") private var includePackages = true
     @AppStorage("scan.computeFolderSizes") private var computeFolderSizes = true
+    @AppStorage("sort.foldersFirst") private var foldersFirst = true
 
     var body: some View {
         Form {
@@ -12,6 +13,7 @@ struct SettingsView: View {
                 Toggle("Include hidden files", isOn: $includeHidden)
                 Toggle("Include package contents (.app, .bundle…)", isOn: $includePackages)
                 Toggle("Compute folder sizes and counts during scans", isOn: $computeFolderSizes)
+                Toggle("Folders on top (sorting)", isOn: $foldersFirst)
             } header: {
                 Text("Scanning")
             } footer: {

@@ -47,9 +47,42 @@ final class MapSession {
     }
 
     private(set) var filtered: [NodeRecord] = []
+    /// Cached aggregates of the filtered set (updated by refilter) so the
+    /// status bar never re-scans the array on every render.
+    private(set) var filteredFiles = 0
+    private(set) var filteredFolders = 0
+    private(set) var filteredSize: Int64 = 0
+
+    /// Rows are cached and sorted once per change — not re-built on every
+    /// SwiftUI body evaluation (critical for maps with hundreds of thousands
+    /// of rows).
+    private var rowsCache: [NodeRow]?
+
+    /// Folders and packages always sort before files.
+    var foldersFirst: Bool {
+        get { UserDefaults.standard.object(forKey: "sort.foldersFirst") as? Bool ?? true }
+        set {
+            UserDefaults.standard.set(newValue, forKey: "sort.foldersFirst")
+            rowsCache = nil
+        }
+    }
+
+    var visibleRows: [NodeRow] {
+        if let rowsCache { return rowsCache }
+        let sorted = RowSorting.apply(filtered.map { NodeRow($0) },
+                                      sortOrder: sortOrder,
+                                      foldersFirst: foldersFirst)
+        rowsCache = sorted
+        return sorted
+    }
+
     var selection: Set<Int64> = []
+
     var sortOrder: [ColumnSort] = NodeColumn.loadSort() {
-        didSet { NodeColumn.saveSort(sortOrder) }
+        didSet {
+            NodeColumn.saveSort(sortOrder)
+            rowsCache = nil
+        }
     }
 
     /// Native macOS table customization: column visibility, order and widths.
@@ -81,12 +114,17 @@ final class MapSession {
     }
 
     private static func buildTreeRows(from snapshot: Snapshot) -> [NodeRow] {
+        let foldersFirst = UserDefaults.standard.object(forKey: "sort.foldersFirst") as? Bool ?? true
         func makeRow(_ record: NodeRecord) -> NodeRow {
             let kids = snapshot.children(of: record.id)
             if kids.isEmpty {
                 return NodeRow(record)
             }
-            return NodeRow(record, children: kids.map(makeRow))
+            let childRows = RowSorting.apply(kids.map { NodeRow($0) },
+                                             sortOrder: NodeColumn.loadSort(),
+                                             foldersFirst: foldersFirst)
+                .map { row -> NodeRow in makeRow(row.record) }
+            return NodeRow(record, children: childRows)
         }
         guard let root = snapshot.root else { return [] }
         return [makeRow(root)]
@@ -225,8 +263,12 @@ final class MapSession {
     // MARK: - Filtering & derived data
 
     private func refilter() {
+        rowsCache = nil
         guard let snapshot else {
             filtered = []
+            filteredFiles = 0
+            filteredFolders = 0
+            filteredSize = 0
             return
         }
         if filter.isEmpty {
@@ -234,10 +276,20 @@ final class MapSession {
         } else {
             filtered = snapshot.nodes.filter { filter.matches($0) }
         }
-    }
-
-    var visibleRows: [NodeRow] {
-        filtered.map { NodeRow($0) }
+        var files = 0
+        var folders = 0
+        var size: Int64 = 0
+        for node in filtered {
+            if node.isDirectory {
+                folders += 1
+            } else {
+                files += 1
+                if let nodeSize = node.size { size += nodeSize }
+            }
+        }
+        filteredFiles = files
+        filteredFolders = folders
+        filteredSize = size
     }
 
     var selectedNodes: [NodeRecord] {

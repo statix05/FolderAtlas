@@ -104,6 +104,7 @@ struct MapWindowRoot: View {
                     case .tree: NodeTreeView(session: session)
                     }
                 }
+                .allowsHitTesting(!session.isScanning)
                 .overlay(alignment: .top) {
                     if !session.filter.isEmpty && session.layout == .tree {
                         Text("The filter is active — the tree shows the full map. Switch to the list layout for filtered results.")
@@ -111,6 +112,39 @@ struct MapWindowRoot: View {
                             .padding(6)
                             .background(.regularMaterial, in: .rect(cornerRadius: 8))
                             .padding(.top, 4)
+                    }
+                }
+                // Option 4.2: while scanning, the content is dimmed and
+                // non-interactive; a progress panel takes over.
+                .overlay {
+                    if session.isScanning {
+                        ZStack {
+                            Rectangle()
+                                .fill(.ultraThinMaterial)
+                                .ignoresSafeArea()
+                            VStack(spacing: 10) {
+                                ProgressView()
+                                    .controlSize(.large)
+                                Text("Building map…")
+                                    .font(.headline)
+                                Text("\(session.progress.files + session.progress.folders) items · \(Fmt.size(session.progress.bytesProcessed))")
+                                    .font(.callout)
+                                    .foregroundStyle(.secondary)
+                                    .monospacedDigit()
+                                Text(session.progress.currentPath)
+                                    .font(.caption2)
+                                    .foregroundStyle(.tertiary)
+                                    .lineLimit(1)
+                                    .truncationMode(.head)
+                                    .frame(maxWidth: 420)
+                                Button("Stop") {
+                                    session.cancelScan()
+                                }
+                                .controlSize(.regular)
+                            }
+                            .padding(24)
+                        }
+                        .transition(.opacity)
                     }
                 }
             }
@@ -121,32 +155,11 @@ struct MapWindowRoot: View {
 
     private var statusBar: some View {
         HStack(spacing: 10) {
-            if session.isScanning {
-                ProgressView()
-                    .controlSize(.small)
-                Text("Scanning… \(session.progress.files + session.progress.folders) items")
+            if let snapshot = session.snapshot {
+                Text("\(session.filteredFiles) files · \(session.filteredFolders) folders · \(Fmt.size(session.filteredSize))")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                Text(session.progress.currentPath)
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-                    .lineLimit(1)
-                    .truncationMode(.head)
-                    .frame(maxWidth: 320, alignment: .leading)
-                Button {
-                    session.cancelScan()
-                } label: {
-                    Label("Stop", systemImage: "stop.circle")
-                }
-                .controlSize(.small)
-            } else if let snapshot = session.snapshot {
-                let files = session.filter.isEmpty ? snapshot.header.fileCount : session.filtered.filter { !$0.isDirectory }.count
-                let folders = session.filter.isEmpty ? snapshot.header.folderCount : session.filtered.filter { $0.isDirectory }.count
-                let size = session.filter.isEmpty ? snapshot.header.totalSize
-                    : session.filtered.compactMap(\.size).reduce(0, +)
-                Text("\(files) files · \(folders) folders · \(Fmt.size(size))")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
                 if snapshot.header.errorCount > 0 {
                     Label("\(snapshot.header.errorCount)", systemImage: "exclamationmark.triangle")
                         .font(.caption)

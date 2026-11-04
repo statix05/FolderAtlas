@@ -34,7 +34,17 @@ final class CoreTests: XCTestCase {
         XCTAssertTrue(FileManager.default.fileExists(atPath: url.path))
 
         let loaded = try SnapshotStore.load(id: snapshot.header.id)
-        XCTAssertEqual(loaded.header, snapshot.header)
+        // Dates round-trip through secondsSince1970 doubles — sub-nanosecond
+        // drift is possible, so compare fields with a tolerance instead of
+        // whole-struct equality.
+        XCTAssertEqual(loaded.header.id, snapshot.header.id)
+        XCTAssertEqual(loaded.header.displayName, snapshot.header.displayName)
+        XCTAssertEqual(loaded.header.sourcePath, snapshot.header.sourcePath)
+        XCTAssertEqual(loaded.header.scanSettings, snapshot.header.scanSettings)
+        XCTAssertEqual(loaded.header.fileCount, snapshot.header.fileCount)
+        XCTAssertEqual(loaded.header.folderCount, snapshot.header.folderCount)
+        XCTAssertEqual(loaded.header.totalSize, snapshot.header.totalSize)
+        XCTAssertLessThan(abs(loaded.header.createdAt.timeIntervalSince(snapshot.header.createdAt)), 0.001)
         XCTAssertEqual(loaded.nodes.count, snapshot.nodes.count)
         XCTAssertEqual(loaded.nodes[1].name, "файл-1 ✅.txt")
         XCTAssertEqual(loaded.nodes[1].tags, ["Work", "Important"])
@@ -192,6 +202,33 @@ final class CoreTests: XCTestCase {
         let withBOM = TextExporters.delimited(rows: [], totals: nil, columns: [.name], separator: ",", bom: true)
         // String(data:encoding:) strips the BOM when decoding — check raw bytes.
         XCTAssertEqual(Array(withBOM.prefix(3)), [0xEF, 0xBB, 0xBF])
+    }
+
+    /// End-to-end check of the Finder-service scenario: headless scan + XLSX
+    /// written next to the scanned folder.
+    func testServiceExportGeneratesXlsxNextToFolder() async throws {
+        let dir = FileManager.default.temporaryDirectory.appending(path: "fa-svc-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        try "hello".write(to: dir.appending(path: "a.txt"), atomically: true, encoding: .utf8)
+        try FileManager.default.createDirectory(at: dir.appending(path: "Sub"), withIntermediateDirectories: true)
+        try "12345".write(to: dir.appending(path: "Sub/b.txt"), atomically: true, encoding: .utf8)
+
+        let produced = await ServiceExport.generateMap(for: dir)
+        let url = try XCTUnwrap(produced, "the service export must produce a file")
+        defer { try? FileManager.default.removeItem(at: url) }
+        XCTAssertEqual(url.deletingLastPathComponent(), dir.deletingLastPathComponent())
+        XCTAssertTrue(url.lastPathComponent.contains(dir.lastPathComponent))
+        XCTAssertEqual(url.pathExtension, "xlsx")
+        // Real ZIP container.
+        XCTAssertEqual([UInt8](try Data(contentsOf: url).prefix(4)), [0x50, 0x4B, 0x03, 0x04])
+        // And unzip accepts it.
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/unzip")
+        process.arguments = ["-t", url.path]
+        try process.run()
+        process.waitUntilExit()
+        XCTAssertEqual(process.terminationStatus, 0)
     }
 
     func testMinusPrefixIsGuarded() {

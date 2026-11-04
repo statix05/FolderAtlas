@@ -11,6 +11,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// Folders dropped onto the dock icon or opened via "Open With".
     func application(_ application: NSApplication, open urls: [URL]) {
+        AppLibrary.shared.cancelServiceMode()
         AppLibrary.shared.submit(urls: urls)
+    }
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        // Cold launch through the Finder service: the exports are already
+        // running — hide the automatically created window; the app quits
+        // when the last export finishes (see AppLibrary.endServiceWork).
+        if AppLibrary.shared.serviceMode {
+            DispatchQueue.main.async {
+                NSApp.hide(nil)
+            }
+        }
     }
 }
