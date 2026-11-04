@@ -143,10 +143,29 @@ struct NodeTableRepresentable: NSViewRepresentable {
             return scrollView
         }
 
+        /// Suppresses persistColumnLayout while columns are being torn down
+        /// and rebuilt: AppKit fires columnDidMove/Resize synchronously inside
+        /// add/removeTableColumn, and persisting a half-built column list
+        /// corrupts session.columnLayout (owner report: duplicated columns).
+        private var isRebuildingColumns = false
+
         private func rebuildColumns(session: MapSession) {
             guard let table else { return }
-            table.tableColumns.forEach(table.removeTableColumn)
-            for column in session.columnLayout.visible {
+            isRebuildingColumns = true
+            defer { isRebuildingColumns = false }
+            // Remove from a SNAPSHOT: if tableColumns returned a live array,
+            // removing while enumerating skipped entries and left orphans
+            // behind, which then duplicated on re-add.
+            for tableColumn in table.tableColumns {
+                table.removeTableColumn(tableColumn)
+            }
+            // Defensive dedup: a corrupted persisted layout must never
+            // materialise as two identical columns.
+            var ordered: [NodeColumn] = []
+            for column in session.columnLayout.visible where !ordered.contains(column) {
+                ordered.append(column)
+            }
+            for column in ordered {
                 let tableColumn = NSTableColumn(identifier: NSUserInterfaceItemIdentifier(column.rawValue))
                 tableColumn.title = column.title
                 tableColumn.width = CGFloat(session.columnLayout.widths[column.rawValue]
@@ -313,7 +332,7 @@ struct NodeTableRepresentable: NSViewRepresentable {
         }
 
         private func persistColumnLayout() {
-            guard let table, let session else { return }
+            guard let table, let session, !isRebuildingColumns else { return }
             var visible: [NodeColumn] = []
             var widths: [String: Double] = session.columnLayout.widths
             for tableColumn in table.tableColumns {
