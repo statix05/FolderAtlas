@@ -245,7 +245,7 @@ struct MapWindowRoot: View {
                 }
                 Divider()
                 Button("Reset Columns") {
-                    session.columnCustomization = TableColumnCustomization()
+                    session.columnLayout = .default
                     session.sortOrder = ColumnSort.defaults
                     NodeColumn.reset()
                 }
@@ -331,9 +331,22 @@ struct MapWindowRoot: View {
 
     private func columnToggle(for column: NodeColumn) -> Binding<Bool> {
         Binding(
-            get: { session.columnCustomization[visibility: column.rawValue] != .hidden },
+            get: { session.columnLayout.visible.contains(column) },
             set: { visible in
-                session.columnCustomization[visibility: column.rawValue] = visible ? .visible : .hidden
+                var layout = session.columnLayout
+                if visible {
+                    if !layout.visible.contains(column) {
+                        // Insert after the currently last "core" column to
+                        // keep a sensible order; exact order can be dragged
+                        // directly in the table header.
+                        layout.visible.append(column)
+                    }
+                } else {
+                    // The name column is the identity of the table — keep it.
+                    guard column != .name || layout.visible.count > 1 else { return }
+                    layout.visible.removeAll { $0 == column }
+                }
+                session.columnLayout = layout
             })
     }
 

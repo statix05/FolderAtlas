@@ -1,7 +1,7 @@
 import Foundation
 
 /// Table column identities and their sort comparators.
-enum NodeColumn: String, CaseIterable, Identifiable, Sendable {
+enum NodeColumn: String, CaseIterable, Identifiable, Sendable, Codable {
     case name, kind, ext
     case size, sizeOnDisk
     case created, modified

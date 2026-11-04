@@ -82,20 +82,44 @@ final class MapSession {
 
     /// Native macOS table customization: column visibility, order and widths.
     /// Persisted as JSON in UserDefaults.
-    var columnCustomization: TableColumnCustomization<NodeRow> = {
-        if let data = UserDefaults.standard.data(forKey: "columns.customization"),
-           let decoded = try? JSONDecoder().decode(TableColumnCustomization<NodeRow>.self, from: data) {
+    /// Native column layout for the AppKit table (visibility + order + widths).
+    /// Replaces the SwiftUI TableColumnCustomization, whose update path
+    /// (AppKitOutlineTableCoordinator) prepared a hosting view per inserted
+    /// row and hung the app on million-row maps.
+    struct ColumnLayout: Codable, Equatable {
+        var visible: [NodeColumn]
+        var widths: [String: Double]
+
+        static let `default` = ColumnLayout(
+            visible: [.name, .kind, .ext, .size, .modified, .path],
+            widths: [:])
+
+        static func load() -> ColumnLayout {
+            guard let data = UserDefaults.standard.data(forKey: "columns.layout"),
+                  let decoded = try? JSONDecoder().decode(ColumnLayout.self, from: data) else {
+                return .default
+            }
             return decoded
         }
-        return TableColumnCustomization()
-    }() {
-        didSet {
-            if oldValue != columnCustomization,
-               let data = try? JSONEncoder().encode(columnCustomization) {
-                UserDefaults.standard.set(data, forKey: "columns.customization")
+
+        func save() {
+            if let data = try? JSONEncoder().encode(self) {
+                UserDefaults.standard.set(data, forKey: "columns.layout")
             }
         }
     }
+
+    var columnLayout: ColumnLayout = ColumnLayout.load() {
+        didSet {
+            guard oldValue != columnLayout else { return }
+            columnLayout.save()
+            displayRevision += 1
+        }
+    }
+
+    /// Bumped whenever the displayed data or column configuration changes so
+    /// the AppKit table knows to reload.
+    @ObservationIgnored private(set) var displayRevision = 0
 
     var layout: Layout = .list {
         didSet {
@@ -281,6 +305,7 @@ final class MapSession {
                 self.filteredSize = size
                 self.visibleRows = rows
                 if needsTree { self.treeRows = tree }
+                self.displayRevision += 1
             }
         }
     }
