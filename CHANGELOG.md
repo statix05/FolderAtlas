@@ -1,5 +1,59 @@
 # Changelog
 
+## 1.3.0 — 2026-11-04
+
+### Added
+
+- **Global macOS menu bar** (owner requirement, macOS convention): File — New Map ⌘N,
+  Open Folder… ⌘O, Rescan ⌘R, Cancel Scan ⌘., Save Map… ⌘S, Export Map… ⌘E; View — List ⌘1 /
+  Tree ⌘2, Folders First ⌘⇧F, Show Size on Disk, Scanning options, Customize Columns, Filters;
+  a dedicated Features section — Compute SHA-256, Extract media & EXIF (each with a scope
+  choice: selection / filtered / whole map), Duplicates, Compare, Quick Look; Settings… ⌘, in
+  the app menu. Items act on the focused window; disabled when inapplicable. ru/en localized.
+- **Quick Look via Space.** Space in the table previews the selection Finder-style; Space again
+  (table focused) closes the panel. Arrow keys inside the open panel browse files natively;
+  Esc closes.
+- **«Путь абсолютный» (Absolute path) column** next to «Путь»; sortable like the path,
+  autofit-aware.
+- **Combined size rendering.** Toggleable «Показать размер на диске» (on by default): files
+  render as «12 МБ / 45 МБ» (logical / on disk) in the Size column; folders show their
+  recursive size. A tooltip explains that on APFS on-disk size can legitimately be SMALLER
+  (transparent compression, sparse files, clones — verified: 74 such files in two system apps).
+
+### Changed
+
+- «Размеры» (Dimensions) → «Разрешение» (Resolution): pixel dimensions of images/video,
+  filled by the media-metadata enrichment.
+- The column picker shows full labels («Элементов в корне папки», «Вложенных файлов в папке»);
+  the redundant «Размер папки» pseudo-column is removed from the picker and from stale layouts.
+- The table refreshes immediately when the size rendering mode flips (no sorting gymnastics).
+
+### Fixed
+
+- Duplicate menus: the system already provides localized Edit/View/Help menus; custom items
+  are merged into them (no more double «Правка»/«Вид»).
+
+### Known issues (open, honestly listed)
+
+- **Column order resets.** A manually reordered column set is not preserved when columns are
+  toggled on/off — owner acknowledged; deliberately deprioritized.
+- **«Resolution» table cells do not refresh after enrichment** (the inspector shows the new
+  values, the table keeps dashes until the next reload) — queued as P8.
+- **Finder Services end-to-end is covered by a manual checklist only** — the real Finder →
+  right-click → Services flow is tested manually (README, «Finder Service» section).
+- **Row icons use SF Symbols placeholders.** Nerd Font integration is queued; the unsaved-map
+  marker is a temporary asterisk.
+- **No built-in Help content yet** (macOS shows "help is not available") — queued together
+  with a donate link in Help/About/README.
+
+### Planned (owner-confirmed queue)
+
+- Row context menu: «Move to Trash», «Copy path for Terminal».
+- .DS_Store toggle, cache highlighting, Nerd Font row glyphs.
+- Built-in Help content + donate link.
+- «Compare map with folder»: red = missing in folder, green = new in folder.
+- Homebrew distribution: formula + bottle (`brew install --cask folderatlas`).
+
 ## 1.2.0-beta.1 — 2026-11-04 (beta; the v1.2.0 queue continues: column clarity, global menu bar, context menu, .DS_Store toggle, cache highlighting, Nerd Font)
 
 ### Known issues (open, honestly listed)
