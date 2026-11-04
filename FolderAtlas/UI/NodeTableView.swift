@@ -499,6 +499,10 @@ enum CellFactory {
                                  accessibilityDescription: NodeFormatters.kindName(node.kind))
             icon.contentTintColor = .secondaryLabelColor
             icon.symbolConfiguration = NSImage.SymbolConfiguration(pointSize: 12, weight: .regular)
+            icon.imageScaling = .scaleProportionallyDown
+            // Fixed icon size: without it NSStackView squeezes the icon to
+            // zero when the column is narrow (P1 regression).
+            fixedSize(icon, side: 15)
             let text = NSTextField(labelWithString: node.displayName)
             text.font = .systemFont(ofSize: 13, weight: node.isDirectory ? .semibold : .regular)
             text.lineBreakMode = .byTruncatingTail
@@ -511,6 +515,8 @@ enum CellFactory {
                 imageView.image = NSImage(systemSymbolName: symbol, accessibilityDescription: help)
                 imageView.contentTintColor = color
                 imageView.symbolConfiguration = NSImage.SymbolConfiguration(pointSize: 10, weight: .regular)
+                imageView.imageScaling = .scaleProportionallyDown
+                fixedSize(imageView, side: 13)
                 imageView.toolTip = help
                 views.append(imageView)
             }
@@ -614,7 +620,18 @@ enum CellFactory {
         ])
         if let text = views.compactMap({ $0 as? NSTextField }).first {
             text.setContentHuggingPriority(.defaultLow, for: .horizontal)
+            // The TEXT truncates when space runs out; the icon (fixed size,
+            // required priority) always stays visible.
+            text.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         }
         return cell
+    }
+
+    private static func fixedSize(_ view: NSView, side: CGFloat) {
+        view.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            view.widthAnchor.constraint(equalToConstant: side),
+            view.heightAnchor.constraint(equalToConstant: side)
+        ])
     }
 }
