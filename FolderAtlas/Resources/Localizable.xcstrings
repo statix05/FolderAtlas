@@ -321,6 +321,22 @@
         }
       }
     },
+    "Cancel Scan": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel Scan"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отменить сканирование"
+          }
+        }
+      }
+    },
     "Changed (%lld)": {
       "localizations": {
         "en": {
@@ -593,6 +609,22 @@
         }
       }
     },
+    "Copy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скопировать"
+          }
+        }
+      }
+    },
     "Copy Name": {
       "localizations": {
         "en": {
@@ -669,6 +701,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Текущая фильтрация"
+          }
+        }
+      }
+    },
+    "Cut": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cut"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вырезать"
           }
         }
       }
@@ -833,6 +881,22 @@
         }
       }
     },
+    "Edit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Правка"
+          }
+        }
+      }
+    },
     "Embed image thumbnails (first %lld)": {
       "localizations": {
         "en": {
@@ -893,6 +957,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Экспорт карты"
+          }
+        }
+      }
+    },
+    "Export Map…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export Map…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Экспортировать карту…"
           }
         }
       }
@@ -1169,6 +1249,22 @@
         }
       }
     },
+    "FolderAtlas on GitHub": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FolderAtlas on GitHub"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FolderAtlas на GitHub"
+          }
+        }
+      }
+    },
     "FolderAtlas only reports duplicates. Removing them is intentionally not part of version 1.": {
       "localizations": {
         "en": {
@@ -1197,6 +1293,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Папок"
+          }
+        }
+      }
+    },
+    "Folders First": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Folders First"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Папки сверху"
           }
         }
       }
@@ -1405,6 +1517,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Включать скрытые файлы"
+          }
+        }
+      }
+    },
+    "Include package contents (.app, .bundle...)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Include package contents (.app, .bundle...)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Включать содержимое пакетов (.app, .bundle...)"
           }
         }
       }
@@ -2001,6 +2129,22 @@
         }
       }
     },
+    "Open Folder…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Folder…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открыть папку…"
+          }
+        }
+      }
+    },
     "PDF": {
       "localizations": {
         "en": {
@@ -2061,6 +2205,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Страница %lld из %lld"
+          }
+        }
+      }
+    },
+    "Paste": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paste"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вставить"
           }
         }
       }
@@ -2205,6 +2365,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Быстрый просмотр выделенного"
+          }
+        }
+      }
+    },
+    "Redo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redo"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вернуть"
           }
         }
       }
@@ -2449,6 +2625,22 @@
         }
       }
     },
+    "Save Map…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save Map…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сохранить карту…"
+          }
+        }
+      }
+    },
     "Save both maps first — comparison needs two snapshots.": {
       "localizations": {
         "en": {
@@ -2653,6 +2845,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Поиск по именам и путям"
+          }
+        }
+      }
+    },
+    "Select All": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select All"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выбрать все"
           }
         }
       }
@@ -3185,6 +3393,22 @@
         }
       }
     },
+    "These apply to the next scan; the current map keeps the settings it was scanned with.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These apply to the next scan; the current map keeps the settings it was scanned with."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Применяются к следующему сканированию; текущая карта сохраняет настройки, с которыми она была построена."
+          }
+        }
+      }
+    },
     "This map is not saved yet": {
       "localizations": {
         "en": {
@@ -3277,6 +3501,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Недоступен"
+          }
+        }
+      }
+    },
+    "Undo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undo"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отменить"
           }
         }
       }

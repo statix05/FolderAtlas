@@ -38,6 +38,15 @@ struct MapWindowRoot: View {
         .toolbar { toolbar }
         .navigationTitle(title)
         .navigationSubtitle(subtitle)
+        // Makes this window's session the target of the global menu
+        // (File > Save/Rescan/Export, View > Layout/Folders First).
+        .focusedSceneValue(\.mapSessionRef, SessionRef(session: session))
+        .onReceive(NotificationCenter.default.publisher(for: AppLibrary.saveRequestNotification)) { _ in
+            if session.snapshot != nil, !session.isScanning { showSaveSheet = true }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: AppLibrary.exportRequestNotification)) { _ in
+            if session.snapshot != nil, !session.isScanning { showExport = true }
+        }
         .fileImporter(isPresented: $showImporter, allowedContentTypes: [.folder],
                       allowsMultipleSelection: true) { result in
             if case .success(let urls) = result {

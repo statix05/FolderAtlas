@@ -12,6 +12,7 @@ struct FolderAtlasApp: App {
                 .environment(library)
         }
         .defaultSize(width: 1150, height: 720)
+        .commands { AppCommands() }
 
         Settings {
             SettingsView()
