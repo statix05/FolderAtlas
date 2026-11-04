@@ -1,6 +1,6 @@
 # FolderAtlas
 
-An open source macOS app that turns any folder or drive into a **map**: a structured catalog of files with rich metadata that you can browse, filter, save, compare and export — the open counterpart to *File List Export* by Georgios Trigonakis.
+An open source macOS app that turns any folder or drive into a **map**: a structured catalog of files with rich metadata that you can browse, filter, save, compare and export.
 
 - **Platform:** macOS 15+ (built and tested on macOS 27)
 - **Stack:** Swift 6, SwiftUI + AppKit where required (Services, Quick Look)
@@ -16,6 +16,18 @@ An open source macOS app that turns any folder or drive into a **map**: a struct
 - **Find duplicates** by content: group by size, then SHA-256 only the candidates. Removing duplicates is intentionally out of scope for v1.
 - **Export** to CSV, TSV, JSON, HTML (self-contained page with search + optional embedded thumbnails), Markdown, PDF (paginated tables) and **real XLSX** (proper OpenXML package, not a renamed CSV).
 - **Finder integration**: right-click a folder → **Services → Make Folder Map** (Russian: «Составить карту папки»). Works from a cold start, handles multiple selected folders (one window per map). Folders can also be dropped onto the window or the Dock icon.
+
+## Typical use cases
+
+- **Inventory a drive before touching it.** Scan an external disk or an old project folder,
+  export the map to XLSX, and keep the exact list of what was there — even after the disk is
+  reformatted or unplugged.
+- **See what eats your space.** Sort by size on disk, filter by type or date range, drill
+  into folder aggregates — then export a report for a colleague.
+- **Track changes between snapshots.** Scan the same project folder once a week and compare:
+  what was added, what disappeared, what changed, what was likely renamed or moved.
+- **Hunt duplicates.** Group files by content (SHA-256) across folders or backups and jump
+  straight to each group in Finder.
 
 Privacy: everything runs locally. No account, no cloud, no telemetry. Scanning never modifies or deletes files, and iCloud placeholders are never downloaded.
 
@@ -71,6 +83,7 @@ None. Everything is implemented on the system frameworks: Foundation, SwiftUI, A
 
 ## Roadmap
 
+- Homebrew distribution: a formula (and a bottle) so the app installs with `brew install --cask folderatlas`
 - Gallery layout, Insights (space breakdowns, charts)
 - Thumbnails inside XLSX cells, hyperlinks and totals polish
 - "Verify files" against saved checksums

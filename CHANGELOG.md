@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — v1.2.0 (in progress)
+## 1.2.0-beta.1 — 2026-11-04 (beta; the v1.2.0 queue continues: column clarity, global menu bar, context menu, .DS_Store toggle, cache highlighting, Nerd Font)
 
 ### Known issues (open, honestly listed)
 
@@ -19,6 +19,7 @@
 
 ### Planned (owner-confirmed queue)
 
+- Homebrew distribution: formula + bottle (`brew install --cask folderatlas`)
 - Column clarity: «Размеры» → «Разрешение», full labels in the column picker
   («Элементов в корне папки», «Вложенных файлов в папке»), remove the redundant
   «Размер папки», add «Путь абсолютный» next to «Путь».
