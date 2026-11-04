@@ -128,6 +128,15 @@ final class MapSession {
     /// primary signal that drives NSViewRepresentable.updateNSView.
     private(set) var displayRevision = 0
 
+    /// Forces the AppKit table to rebuild and reload its cells on the next
+    /// pass. Used when a setting changes the LOOK of existing rows (e.g. the
+    /// combined Size / On disk rendering) without changing the column set —
+    /// owner report: without this the table kept the old look until the next
+    /// sort interaction.
+    public func refreshDisplay() {
+        displayRevision += 1
+    }
+
     var layout: Layout = .list {
         didSet {
             if oldValue != layout, layout == .tree, treeRows == nil {

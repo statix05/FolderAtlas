@@ -104,10 +104,11 @@ struct MapWindowRoot: View {
             if newValue { layout.visible.removeAll { $0 == .sizeOnDisk } }
             if layout != session.columnLayout {
                 session.columnLayout = layout
+            } else {
+                // Same key, new look: cells must re-render with the combined
+                // (or split) size right away — owner report P3.5.
+                session.refreshDisplay()
             }
-            // When the layout is unchanged the @AppStorage flip still drives
-            // updateNSView; Coordinator.sync notices the setting change and
-            // rebuilds the header title + reloads cells.
         }
         .dropDestination(for: URL.self) { urls, _ in
             let folders = urls.filter { (try? $0.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true }
@@ -274,7 +275,7 @@ struct MapWindowRoot: View {
             .labelsHidden()
 
             Menu {
-                Toggle(String(localized: "Combine Size / On disk"), isOn: $combinedSize)
+                Toggle(String(localized: "Show Size on Disk"), isOn: $combinedSize)
                     .help(Text("On APFS, size on disk can be SMALLER than the file size — transparent compression, sparse files and clones are normal. This is not a bug."))
                 Divider()
                 ForEach(NodeColumn.pickerCases) { column in

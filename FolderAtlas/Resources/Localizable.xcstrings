@@ -513,22 +513,6 @@
         }
       }
     },
-    "Combine Size / On disk": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Combine Size / On disk"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Объединить Размер / На диске"
-          }
-        }
-      }
-    },
     "Compare": {
       "localizations": {
         "en": {
@@ -2829,6 +2813,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Показать файл карты в Finder"
+          }
+        }
+      }
+    },
+    "Show Size on Disk": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show Size on Disk"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показать размер на диске"
           }
         }
       }

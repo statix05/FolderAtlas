@@ -111,7 +111,7 @@ struct AppCommands: Commands {
             Toggle(String(localized: "Folders First"), isOn: foldersFirstBinding)
                 .keyboardShortcut("f", modifiers: [.command, .shift])
                 .disabled(session == nil)
-            Toggle(String(localized: "Combine Size / On disk"), isOn: $combinedSize)
+            Toggle(String(localized: "Show Size on Disk"), isOn: $combinedSize)
 
             Divider()
             Menu(String(localized: "Scanning")) {
