@@ -393,6 +393,37 @@ struct NodeTableRepresentable: NSViewRepresentable {
             expandedIDs.remove(box.row.id)
         }
 
+        /// Excel-style autofit: double-click on the resize border fits the
+        /// column to its longest cell. AppKit calls this synchronously on the
+        /// main thread, so measurement runs off-main and the real width is
+        /// applied the moment it is ready (no freeze on million-row maps).
+        func tableView(_ tableView: NSTableView, sizeToFitWidthOfColumn columnIndex: Int) -> CGFloat {
+            guard let session, columnIndex < tableView.tableColumns.count else { return 0 }
+            let tableColumn = tableView.tableColumns[columnIndex]
+            guard let nodeColumn = NodeColumn(rawValue: tableColumn.identifier.rawValue) else {
+                return tableColumn.width
+            }
+            let rows = session.visibleRows.map(\.record)
+            let current = tableColumn.width
+            Self.log.info("autofit requested \(nodeColumn.rawValue, privacy: .public) rows=\(rows.count)")
+            Task.detached(priority: .userInitiated) { [weak self] in
+                guard let fitted = await ColumnFit.fittedWidth(for: nodeColumn, rows: rows) else { return }
+                await MainActor.run {
+                    self?.applyFittedWidth(nodeColumn, width: fitted, table: tableView)
+                }
+            }
+            return current
+        }
+
+        private func applyFittedWidth(_ column: NodeColumn, width: CGFloat, table: NSTableView) {
+            guard let tableColumn = table.tableColumns.first(where: {
+                $0.identifier.rawValue == column.rawValue
+            }) else { return }
+            tableColumn.width = width
+            Self.log.info("autofit applied \(column.rawValue, privacy: .public) width=\(Int(width))")
+            persistColumnLayout()
+        }
+
         /// Header click → sort. Single authoritative mechanism.
         private func handleHeaderClick(_ tableColumn: NSTableColumn) {
             guard let session, !suppressSortSync,
