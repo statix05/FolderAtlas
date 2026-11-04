@@ -91,7 +91,9 @@ struct NodeTableRepresentable: NSViewRepresentable {
             // didClickTableColumn proved unreliable here (never fired for the
             // owner's real clicks), so clicks are detected directly on the
             // header view; drag/resize/reorder still go through super.
-            let header = SortHeader(frame: .zero)
+            // NB: non-zero frame REQUIRED — the table does not size a
+            // zero-frame headerView (regression: headers vanished).
+            let header = SortHeader(frame: NSRect(x: 0, y: 0, width: 800, height: 25))
             table.headerView = header
             header.onHeaderClick = { [weak self] tableColumn in
                 self?.handleHeaderClick(tableColumn)
