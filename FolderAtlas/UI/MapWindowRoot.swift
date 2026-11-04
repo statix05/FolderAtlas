@@ -144,7 +144,11 @@ struct MapWindowRoot: View {
                             }
                             .padding(24)
                         }
-                        .transition(.opacity)
+                        // No .transition/animation here: animated conditional
+                        // content inside the outline-table hierarchy crashes
+                        // AttributeGraph during row-height sizing (see crash
+                        // 609EF7EF). Appear/disappear must be abrupt.
+                        .transaction { $0.animation = nil }
                     }
                 }
             }
