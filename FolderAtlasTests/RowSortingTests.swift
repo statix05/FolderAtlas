@@ -60,6 +60,19 @@ final class RowSortingTests: XCTestCase {
         XCTAssertEqual(sorted.map(\.record.name), ["b", "a"])
     }
 
+    func testNextSortHeaderClickCycling() {
+        let name = NodeColumn.name
+        let size = NodeColumn.size
+        XCTAssertEqual(RowSorting.nextSort(current: [], column: name),
+                       [ColumnSort(column: name, order: .forward)])
+        XCTAssertEqual(RowSorting.nextSort(current: [ColumnSort(column: name, order: .forward)], column: name),
+                       [ColumnSort(column: name, order: .reverse)])
+        XCTAssertEqual(RowSorting.nextSort(current: [ColumnSort(column: name, order: .reverse)], column: name),
+                       [ColumnSort(column: name, order: .forward)])
+        XCTAssertEqual(RowSorting.nextSort(current: [ColumnSort(column: size, order: .reverse)], column: name),
+                       [ColumnSort(column: name, order: .forward)])
+    }
+
     func testNumericNameOrder() {
         XCTAssertEqual(SortKey.compare("file2", "file10"), .orderedAscending)
         XCTAssertEqual(SortKey.compare("file10", "file9"), .orderedDescending)

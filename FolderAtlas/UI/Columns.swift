@@ -196,6 +196,17 @@ enum RowSorting {
         }
     }
 
+    /// Excel/Finder-style header click cycling: first click sorts forward,
+    /// clicking the same column again flips the direction, a different column
+    /// starts a fresh forward sort. Pure — unit-tested.
+    static func nextSort(current: [ColumnSort], column: NodeColumn) -> [ColumnSort] {
+        if let first = current.first, first.column == column {
+            let order: SortOrder = first.order == .forward ? .reverse : .forward
+            return [ColumnSort(column: column, order: order)]
+        }
+        return [ColumnSort(column: column, order: .forward)]
+    }
+
     /// Folders and packages first (rank 0), everything else after.
     private static func rank(_ node: NodeRecord) -> Int {
         switch node.kind {

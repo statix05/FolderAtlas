@@ -75,6 +75,7 @@ final class MapSession {
 
     var sortOrder: [ColumnSort] = NodeColumn.loadSort() {
         didSet {
+            guard oldValue != sortOrder else { return }
             NodeColumn.saveSort(sortOrder)
             scheduleRebuild(tree: layout == .tree)
         }

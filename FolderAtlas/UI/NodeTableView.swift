@@ -57,6 +57,8 @@ struct NodeTableRepresentable: NSViewRepresentable {
         private var appliedRevision = -1
         private var appliedTree = false
         private var appliedLayout: MapSession.ColumnLayout?
+        private var appliedSorts: [ColumnSort]?
+        private var suppressSortSync = false
         private var suppressSelectionSync = false
         private var menuActions: [ActionBox] = []
         private var expandedIDs: Set<Int64> = []
@@ -135,8 +137,10 @@ struct NodeTableRepresentable: NSViewRepresentable {
                                             ?? Self.defaultWidths[column] ?? 120)
                 tableColumn.minWidth = 40
                 tableColumn.maxWidth = 900
-                tableColumn.sortDescriptorPrototype = NSSortDescriptor(
-                    key: column.rawValue, ascending: true)
+                // No sortDescriptorPrototype: header clicks are handled
+                // explicitly via didClickTableColumn (see below) — AppKit's
+                // automatic prototype cycling conflicts with it and caused
+                // "indicator moves but data doesn't sort".
                 table.addTableColumn(tableColumn)
             }
             table.outlineTableColumn = table.tableColumns.first
@@ -169,8 +173,16 @@ struct NodeTableRepresentable: NSViewRepresentable {
                 table.reloadData()
             }
 
-            table.sortDescriptors = session.sortOrder.map {
-                NSSortDescriptor(key: $0.column.rawValue, ascending: $0.order == .forward)
+            // Sort indicator: set programmatically ONLY when it actually
+            // changed, guarded so programmatic assignment can never re-enter
+            // the click handling (AppKit may notify on assignment).
+            if appliedSorts != session.sortOrder {
+                appliedSorts = session.sortOrder
+                suppressSortSync = true
+                table.sortDescriptors = session.sortOrder.map {
+                    NSSortDescriptor(key: $0.column.rawValue, ascending: $0.order == .forward)
+                }
+                suppressSortSync = false
             }
 
             let selectedIDs = currentSelectedIDs()
@@ -366,15 +378,12 @@ struct NodeTableRepresentable: NSViewRepresentable {
             expandedIDs.remove(box.row.id)
         }
 
-        func tableView(_ tableView: NSTableView, sortDescriptorsDidChange oldDescriptors: [NSSortDescriptor]) {
-            guard let session else { return }
-            let sorts: [ColumnSort] = tableView.sortDescriptors.compactMap { descriptor in
-                guard let key = descriptor.key, let column = NodeColumn(rawValue: key) else { return nil }
-                return ColumnSort(column: column, order: descriptor.ascending ? .forward : .reverse)
-            }
-            if !sorts.isEmpty {
-                session.sortOrder = sorts
-            }
+        /// Header click → sort (the single authoritative mechanism; there is
+        /// deliberately no sortDescriptorPrototype, see rebuildColumns).
+        func tableView(_ tableView: NSTableView, didClickTableColumn tableColumn: NSTableColumn) {
+            guard let session, !suppressSortSync,
+                  let column = NodeColumn(rawValue: tableColumn.identifier.rawValue) else { return }
+            session.sortOrder = RowSorting.nextSort(current: session.sortOrder, column: column)
         }
 
         func tableView(_ tableView: NSTableView, menuForEvent event: NSEvent, row: Int, column: Int) -> NSMenu? {
