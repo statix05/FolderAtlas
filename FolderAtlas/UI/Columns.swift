@@ -6,7 +6,7 @@ enum NodeColumn: String, CaseIterable, Identifiable, Sendable, Codable {
     case size, sizeOnDisk
     case created, modified
     case tags
-    case path
+    case path, absolutePath
     case items, nestedItems, folderSize
     case sha256
     case dimensions, duration, codec
@@ -14,6 +14,7 @@ enum NodeColumn: String, CaseIterable, Identifiable, Sendable, Codable {
 
     var id: String { rawValue }
 
+    /// Short header title (kept narrow on purpose — owner request).
     var title: String {
         switch self {
         case .name: return String(localized: "Name")
@@ -25,15 +26,39 @@ enum NodeColumn: String, CaseIterable, Identifiable, Sendable, Codable {
         case .modified: return String(localized: "Modified")
         case .tags: return String(localized: "Tags")
         case .path: return String(localized: "Path")
+        case .absolutePath: return String(localized: "Absolute path")
         case .items: return String(localized: "Items")
         case .nestedItems: return String(localized: "Nested items")
         case .folderSize: return String(localized: "Folder size")
         case .sha256: return String(localized: "SHA-256")
-        case .dimensions: return String(localized: "Dimensions")
+        case .dimensions: return String(localized: "Resolution")
         case .duration: return String(localized: "Duration")
         case .codec: return String(localized: "Codec")
         case .flags: return String(localized: "Flags")
         }
+    }
+
+    /// Full label for the column-picker menu (headers stay short, the menu
+    /// explains what each column actually counts — owner request).
+    var menuTitle: String {
+        switch self {
+        case .items: return String(localized: "Direct items in folder")
+        case .nestedItems: return String(localized: "Nested files in folder")
+        default: return title
+        }
+    }
+
+    /// Columns offered in the picker. Folder size is not offered: the folder
+    /// size is shown by the Size column itself (owner request).
+    static var pickerCases: [NodeColumn] {
+        allCases.filter { $0 != .folderSize }
+    }
+
+    /// Absolute path string for a record under the given snapshot root.
+    static func absolutePathString(root: String, relativePath: String) -> String {
+        guard !root.isEmpty else { return relativePath }
+        if relativePath.isEmpty { return root }
+        return root + "/" + relativePath
     }
 
     private static let sortKey = "columns.sortOrder"
@@ -104,6 +129,10 @@ struct ColumnSort: SortComparator, Hashable, Sendable {
             return plainString((a.tags ?? []).joined(separator: ", "),
                                (b.tags ?? []).joined(separator: ", "))
         case .path:
+            return SortKey.compareKeys(a.pathSortKey ?? SortKey.make(a.relativePath),
+                                       b.pathSortKey ?? SortKey.make(b.relativePath))
+        case .absolutePath:
+            // Same root for the whole map → the order matches the relative one.
             return SortKey.compareKeys(a.pathSortKey ?? SortKey.make(a.relativePath),
                                        b.pathSortKey ?? SortKey.make(b.relativePath))
         case .items:

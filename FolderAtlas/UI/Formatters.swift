@@ -1,11 +1,33 @@
 import Foundation
 
+/// View-level toggles backed by UserDefaults (read on the hot path is fine —
+/// defaults are process-cached).
+enum ViewSettings {
+    static let combinedSizeKey = "columns.combinedSize"
+
+    /// Combine «Size» and «Size on disk» into one slash-separated column
+    /// (owner request; default ON, can be switched off).
+    static var combinedSize: Bool {
+        UserDefaults.standard.object(forKey: combinedSizeKey) == nil
+            ? true
+            : UserDefaults.standard.bool(forKey: combinedSizeKey)
+    }
+}
+
 enum Fmt {
     static let unknown = "—"
 
     static func size(_ bytes: Int64?) -> String {
         guard let bytes else { return unknown }
         return ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
+    }
+
+    /// «12 МБ / 45 МБ» — logical size / on-disk size for the combined column.
+    /// Falls back to the plain size when the combination is off or the on-disk
+    /// value is unknown. Files only (folders have no meaningful split here).
+    static func sizeCombined(_ logical: Int64?, _ onDisk: Int64?, combined: Bool) -> String {
+        guard combined, let onDisk, logical != nil else { return size(logical) }
+        return "\(size(logical)) / \(size(onDisk))"
     }
 
     static func size(_ bytes: Int64) -> String {

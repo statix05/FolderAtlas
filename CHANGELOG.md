@@ -7,9 +7,11 @@
 - **Column order resets.** A manually reordered column set (e.g. «Тип» dragged first) is not
   preserved when columns are toggled on/off — the order falls back to the stored/default order.
   Acknowledged by the owner; deliberately deprioritized for now, will be fixed.
-- **Size on disk can render smaller than the logical size.** That is impossible in reality
-  (allocated space ≥ logical size); the calculation is under investigation. A combined
-  toggleable «Size / On disk» column is planned alongside the fix.
+- **Size on disk can render smaller than the logical size — explained, not a bug.** Verified
+  against the system: APFS transparent compression, sparse files and clones legitimately report
+  a smaller on-disk footprint (e.g. Chess: 1.2 MB logical → 4 KB on disk; 74 such files in two
+  system apps alone). The combined toggleable «Size / On disk» column plus an explanatory
+  tooltip ship with this beta.
 - **Finder Services end-to-end is covered by a manual checklist only.** Registration is
   verified programmatically (`pbs -flush` + service descriptor); the real Finder → right-click →
   Services flow (cold and warm app) is tested manually by the owner and documented in the

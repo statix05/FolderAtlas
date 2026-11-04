@@ -17,6 +17,8 @@ struct MapWindowRoot: View {
     @State private var showExport = false
     @State private var showFilter = false
     @State private var showSaveSheet = false
+    /// Combine «Size» and «Size on disk» into one slash column (owner option).
+    @AppStorage(ViewSettings.combinedSizeKey) private var combinedSize = true
     @State private var showImporter = false
     @State private var pendingFormat: ExportFormat = .csv
 
@@ -87,6 +89,16 @@ struct MapWindowRoot: View {
                 // Item 10: the map appears in THIS window, not a new one.
                 session.apply(request: MapWindowRequest.draft(path: url.path, name: url.lastPathComponent))
             }
+        }
+        .onChange(of: combinedSize) { _, newValue in
+            var layout = session.columnLayout
+            if newValue { layout.visible.removeAll { $0 == .sizeOnDisk } }
+            if layout != session.columnLayout {
+                session.columnLayout = layout
+            }
+            // When the layout is unchanged the @AppStorage flip still drives
+            // updateNSView; Coordinator.sync notices the setting change and
+            // rebuilds the header title + reloads cells.
         }
         .dropDestination(for: URL.self) { urls, _ in
             let folders = urls.filter { (try? $0.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true }
@@ -253,8 +265,11 @@ struct MapWindowRoot: View {
             .labelsHidden()
 
             Menu {
-                ForEach(NodeColumn.allCases) { column in
-                    Toggle(column.title, isOn: columnToggle(for: column))
+                Toggle(String(localized: "Combine Size / On disk"), isOn: $combinedSize)
+                    .help(Text("On APFS, size on disk can be SMALLER than the file size — transparent compression, sparse files and clones are normal. This is not a bug."))
+                Divider()
+                ForEach(NodeColumn.pickerCases) { column in
+                    Toggle(column.menuTitle, isOn: columnToggle(for: column))
                 }
                 Divider()
                 Button("Reset Columns") {

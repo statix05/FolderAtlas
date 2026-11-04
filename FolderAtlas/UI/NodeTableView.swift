@@ -154,9 +154,11 @@ struct NodeTableRepresentable: NSViewRepresentable {
             isRebuildingColumns = true
             defer { isRebuildingColumns = false }
             // Defensive dedup: a corrupted persisted layout must never
-            // materialise as two identical columns.
+            // materialise as two identical columns. Folder size is not a
+            // column anymore (the Size column shows it) — stale layouts drop it.
             var ordered: [NodeColumn] = []
-            for column in session.columnLayout.visible where !ordered.contains(column) {
+            for column in session.columnLayout.visible
+            where !ordered.contains(column) && column != .folderSize {
                 ordered.append(column)
             }
             TableColumnRebuilder.apply(
@@ -176,9 +178,24 @@ struct NodeTableRepresentable: NSViewRepresentable {
 
         // MARK: Sync
 
+        /// Mirrors the combined-size setting; a flip must rebuild the header
+        /// title (Size → Size / On disk) and reload cells even when the column
+        /// set itself did not change.
+        private var appliedCombinedSize = ViewSettings.combinedSize
+
+        /// Snapshot root for the absolute-path column.
+        private var sourceRoot: String {
+            session?.snapshot?.header.sourcePath ?? session?.request?.sourcePath ?? ""
+        }
+
         func sync(session: MapSession) {
             self.session = session
             guard let table else { return }
+            if appliedCombinedSize != ViewSettings.combinedSize {
+                appliedCombinedSize = ViewSettings.combinedSize
+                rebuildColumns(session: session)
+                table.reloadData()
+            }
             Self.log.info("sync rev=\(session.displayRevision) appliedRev=\(self.appliedRevision) sort=\(session.sortOrder.first?.column.rawValue ?? "-", privacy: .public)/\(session.sortOrder.first?.order == .reverse ? "R" : "F", privacy: .public) rows=\(session.visibleRows.count)")
 
             if appliedRevision != session.displayRevision || appliedTree != tree {
@@ -371,7 +388,7 @@ struct NodeTableRepresentable: NSViewRepresentable {
             guard let box = item as? ItemBox,
                   let rawID = tableColumn?.identifier.rawValue,
                   let column = NodeColumn(rawValue: rawID) else { return nil }
-            return CellFactory.view(for: box.row, column: column)
+            return CellFactory.view(for: box.row, column: column, sourceRoot: sourceRoot)
         }
 
         func outlineView(_ outlineView: NSOutlineView, heightOfRowByItem item: Any) -> CGFloat {
@@ -411,7 +428,10 @@ struct NodeTableRepresentable: NSViewRepresentable {
             let table = self.table
             Self.log.info("autofit requested \(nodeColumn.rawValue, privacy: .public) rows=\(rows.count)")
             Task.detached(priority: .userInitiated) { [weak self] in
-                guard let fitted = await ColumnFit.fittedWidth(for: nodeColumn, rows: rows) else { return }
+                let root = await MainActor.run { self?.session?.snapshot?.header.sourcePath }
+                guard let fitted = await ColumnFit.fittedWidth(
+                    for: nodeColumn, rows: rows,
+                    root: root, combinedSize: ViewSettings.combinedSize) else { return }
                 await MainActor.run {
                     guard let table else { return }
                     self?.applyFittedWidth(nodeColumn, width: fitted, table: table)
@@ -578,7 +598,7 @@ final class SortHeader: NSTableHeaderView {
 @MainActor
 enum CellFactory {
 
-    static func view(for row: NodeRow, column: NodeColumn) -> NSView {
+    static func view(for row: NodeRow, column: NodeColumn, sourceRoot: String = "") -> NSView {
         let node = row.record
         switch column {
         case .name:
@@ -628,7 +648,9 @@ enum CellFactory {
             case .ext:
                 value = node.ext ?? Fmt.unknown; secondary = true; mono = false; head = false
             case .size:
-                value = Fmt.size(node.size); secondary = false; mono = true; head = false
+                value = Fmt.sizeCombined(node.size, node.allocSize,
+                                         combined: ViewSettings.combinedSize && !node.isDirectory)
+                secondary = false; mono = true; head = false
             case .sizeOnDisk:
                 value = Fmt.size(node.allocSize); secondary = true; mono = true; head = false
             case .created:
@@ -641,6 +663,9 @@ enum CellFactory {
                 secondary = !hasTags; mono = false; head = false
             case .path:
                 value = node.relativePath; secondary = true; mono = false; head = true
+            case .absolutePath:
+                value = NodeColumn.absolutePathString(root: sourceRoot, relativePath: node.relativePath)
+                secondary = true; mono = false; head = true
             case .items:
                 value = Fmt.count(node.childCount); secondary = false; mono = true; head = false
             case .nestedItems:

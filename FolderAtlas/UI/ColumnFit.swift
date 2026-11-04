@@ -8,7 +8,10 @@ enum ColumnFit {
 
     /// Max fitted width for the given column across the visible rows.
     /// Returns nil when there is nothing to measure.
-    static func fittedWidth(for column: NodeColumn, rows: [NodeRecord]) -> CGFloat? {
+    static func fittedWidth(for column: NodeColumn,
+                            rows: [NodeRecord],
+                            root: String? = nil,
+                            combinedSize: Bool = false) -> CGFloat? {
         guard !rows.isEmpty else { return nil }
         let regular = NSFont.systemFont(ofSize: 12)
         let mono = NSFont.monospacedDigitSystemFont(ofSize: 12, weight: .regular)
@@ -27,7 +30,9 @@ enum ColumnFit {
             case .ext:
                 text = record.ext ?? Fmt.unknown; font = regular
             case .size:
-                text = Fmt.size(record.size); font = mono
+                text = Fmt.sizeCombined(record.size, record.allocSize,
+                                        combined: combinedSize && !record.isDirectory)
+                font = mono
             case .sizeOnDisk:
                 text = Fmt.size(record.allocSize); font = mono
             case .created:
@@ -40,6 +45,9 @@ enum ColumnFit {
                 font = regular
             case .path:
                 text = record.relativePath; font = regular
+            case .absolutePath:
+                text = NodeColumn.absolutePathString(root: root ?? "", relativePath: record.relativePath)
+                font = regular
             case .items, .nestedItems:
                 text = Fmt.count(record.childCount); font = mono
             case .folderSize:

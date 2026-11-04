@@ -68,7 +68,10 @@ enum TableColumnRebuilder {
                                    widths: [String: Double],
                                    defaultWidths: [NodeColumn: CGFloat]) -> NSTableColumn {
         let tableColumn = NSTableColumn(identifier: NSUserInterfaceItemIdentifier(column.rawValue))
-        tableColumn.title = column.title
+        // When sizes are combined the Size column carries both values.
+        tableColumn.title = column == .size && ViewSettings.combinedSize
+            ? String(localized: "Size / On disk")
+            : column.title
         tableColumn.width = CGFloat(widths[column.rawValue] ?? defaultWidths[column] ?? 120)
         tableColumn.minWidth = 40
         tableColumn.maxWidth = 900
