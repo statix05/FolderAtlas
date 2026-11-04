@@ -27,6 +27,15 @@ final class ColumnFitTests: XCTestCase {
         XCTAssertEqual(w, 900, "fitted width capped at 900")
     }
 
+    func testHeaderTitleIsNeverTruncatedByAutofit() throws {
+        // Tiny cell values, long localized header: the fitted width must be
+        // at least the ACTUAL (localized) title width + margin.
+        let w = try XCTUnwrap(ColumnFit.fittedWidth(for: .sizeOnDisk, rows: [record(1, name: "a")]))
+        let titleWidth = (NodeColumn.sizeOnDisk.title as NSString)
+            .size(withAttributes: [.font: NSFont.systemFont(ofSize: 11)]).width
+        XCTAssertGreaterThanOrEqual(w, ceil(titleWidth + 22))
+    }
+
     func testEmptyRowsReturnNil() {
         XCTAssertNil(ColumnFit.fittedWidth(for: .name, rows: []))
     }

@@ -60,9 +60,18 @@ enum ColumnFit {
             }
             maxText = max(maxText, (text as NSString).size(withAttributes: [.font: font]).width)
         }
-        // Horizontal padding from horizontalCell/wrap: leading 4 + trailing ~4,
-        // plus icon (15) + spacing (5) for the name column.
-        let extra: CGFloat = column == .name ? 4 + 15 + 5 + 6 : 10
-        return min(900, max(40, ceil(maxText + extra)))
+        // Horizontal padding from horizontalCell/wrap: leading 4 + trailing 4,
+        // plus icon (15) + spacing (5) for the name column. The extra margin
+        // (owner feedback) prevents a stray ellipsis: the measured string width
+        // runs slightly tighter than what NSTextField actually renders.
+        let extra: CGFloat = column == .name ? 4 + 15 + 5 + 16 : 22
+        let contentWidth = ceil(maxText + extra)
+        // The header must never truncate either (owner feedback): if the title
+        // is wider than the widest cell, size to the header plus a margin.
+        let headerFont = NSFont.systemFont(ofSize: 11)
+        let titleWidth = (column.title as NSString)
+            .size(withAttributes: [.font: headerFont]).width
+        let headerWidth = ceil(titleWidth + 22)
+        return min(900, max(40, max(contentWidth, headerWidth)))
     }
 }
